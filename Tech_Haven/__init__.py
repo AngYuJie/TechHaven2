@@ -17,6 +17,7 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 from flask_bcrypt import Bcrypt
+from datetime import date, datetime
 
 bcrypt = Bcrypt()
 
@@ -120,14 +121,34 @@ def login():
             cursor.execute('SELECT * FROM accounts WHERE Email = %s', (Email,))
             g.account = cursor.fetchone()
             user_hashPassword = g.account['Password']
+            NoOfFailedAttemps = g.account['NoOfFailedAttemps']
 
         if g.account and bcrypt.check_password_hash(user_hashPassword,Password):
 
             session['user_id'] = g.account['Id']
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
+                val = ("0",None,None,Email)
+                cursor.execute(sql,val)
+                mysql.connection.commit()
 
             return redirect(url_for('home'))
 
         else:
+            todaydate = date.today()
+            failedDate = todaydate.strftime("%Y-%D-%M")
+
+            todayTime = datetime.today()
+            failedTime = todayTime.strftime("%H:%M:%S")
+
+            test = int(NoOfFailedAttemps)+1
+
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+
+                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
+                val = (test,failedDate,failedTime,Email)
+                cursor.execute(sql,val)
+                mysql.connection.commit()
             error = 'Invalid Credentials. Please try again.'
 
     return render_template('login.html',form=form, error=error)
@@ -162,7 +183,7 @@ def register():
 
             else:
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL)',(FirstName, LastName, hashpassword, Email, Street,PostalCode,UnitNumber,MobileNumber))
+                    cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s)',(FirstName, LastName, hashpassword, Email, Street,PostalCode,UnitNumber,MobileNumber,current_date,"Customer",0,'Active'))
                     mysql.connection.commit()
                 session['user_created'] = "You"
 
