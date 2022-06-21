@@ -41,8 +41,23 @@
                               <div class="form-group mb-3">
                                   {{ render_field(form.inquiry, class="form-control" ) }}
                                   <span style="color:red" id="InquirySpan">&nbsp</span>
+                                   {{form.recaptcha}}
+    {%for error in form.recaptcha.errors%}
+    <ul>
+        <li style="color:red;">
+            {{error}}
+        </li>
+        {% endfor %}
+
+    </ul>
+
+
+    {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}
+   {% endif %}
                               </div>
                           </div>
+
                           <input type="button" value="Submit" class="btn btn-primary" id="button" onclick="check()"/>
                       </div>
                   </form>
