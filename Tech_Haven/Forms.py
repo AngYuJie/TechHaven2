@@ -7,6 +7,7 @@ class LoginForm(Form):
     email = StringField('Email', [validators.DataRequired()])
     password = PasswordField('Password', [validators.DataRequired()])
     recaptcha = RecaptchaField()
+
 class RegisterForm(Form):
     first_name = StringField('First Name',[validators.Length(min=3, max=150), validators.DataRequired()])
     last_name = StringField('Last Name', [validators.Length(min=2, max=150), validators.DataRequired()])
@@ -17,6 +18,7 @@ class RegisterForm(Form):
     postal_code = StringField('Postal Code', [validators.DataRequired()], render_kw={"placeholder": "000000"})
     unit_number = StringField('Unit Number', [validators.DataRequired()], render_kw={"placeholder": "#00-00"})
     mobile_number = StringField('Mobile Number', [validators.DataRequired()])
+    recaptcha = RecaptchaField()
 
 
 class ContactUsForm(Form):
@@ -25,10 +27,12 @@ class ContactUsForm(Form):
     email = EmailField('Email', [validators.Email(), validators.DataRequired()], render_kw={"placeholder": "Email"})
     subject = StringField('Subject', [validators.DataRequired("Please enter a subject")], render_kw={"placeholder": "Subject"})
     inquiry = TextAreaField('Inquiry', [validators.DataRequired("Please enter your inquiry"), validators.Length(min=1, max=150)], render_kw={"placeholder": "Inquiry"})
+    recaptcha = RecaptchaField()
 
 
 class CreateReplyForm(Form):
     reply = TextAreaField('Reply', [validators.DataRequired("Please enter your reply"), validators.Length(min=1, max=150)], render_kw={"placeholder": "Reply"})
+    recaptcha = RecaptchaField()
 
 
 class ReviewForm(Form):
@@ -48,6 +52,7 @@ class createProductForm(Form):
 
 class ForgetPasswordForm(Form):
     email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
+    recaptcha = RecaptchaField()
 
 class PasswordResetForm(Form):
     current_password = PasswordField('Current Password',[validators.DataRequired(), validators.Length(min=4, max=80)])
