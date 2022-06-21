@@ -6,18 +6,18 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from flask_wtf import RecaptchaField
+
 import Product
 import Review
 import User
 import Feedback
 import AddProduct
-from Tech_Haven.Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 from flask_bcrypt import Bcrypt
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 bcrypt = Bcrypt()
 
@@ -32,7 +32,7 @@ app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 465
 app.config["MAIL_USE_SSL"] = True
 app.config["MAIL_USERNAME"] = 'tech.haven.we.sell.you.buy@gmail.com'
-app.config["MAIL_PASSWORD"] = 'Zgmf-X19A'
+app.config["MAIL_PASSWORD"] = 'teisjyvrlvrpnhgk'
 app.config['MAIL_DEFAULT_SENDER'] = 'tech.haven.we.sell.you.buy@gmail.com'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -159,6 +159,8 @@ def login():
 @app.route('/register', methods=["GET", "POST"])
 def register():
     form = RegisterForm(request.form)
+    todaydate = date.today()
+    current_date = todaydate.strftime("%Y-%D-%M")
 
     if request.method == 'POST' and form.validate():
         FirstName = form.first_name.data
@@ -1254,36 +1256,39 @@ def page_not_found(e):
 @app.route('/forget_password', methods=["GET", "POST"])
 def forget_password():
     error = None
-    db = shelve.open('register.db', 'r')
-
-    user_dict = db['Users']
-
+    todaydate = date.today() +timedelta(days=-30)
+    passwordAge = todaydate.strftime("%Y-%D-%M")
 
     form = ForgetPasswordForm(request.form)
-
-    if request.method == 'POST' and form.validate:
+    if request.method == 'POST' and form.validate():
         session.pop('user_id', None)
-        email = request.form['email']
-        for key in user_dict:
-            user = user_dict.get(key)
 
-            if user.get_email() == email:
-                user_id = user.get_user_id()
+        Email = form.email.data
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+            account = cursor.fetchone()
+            if account:
                 error = None
-                random_str = random.randint(1000000,10000000)
-                print(random_str)
-                db = shelve.open('register.db', 'w')
-                users_dict = db['Users']
-                user = users_dict.get(user_id)
-                user.set_password(generate_password_hash(str(random_str), method='sha256'))
-                name = user.get_full_name()
-                db['Users'] = users_dict
-                db.close()
-                message1 = "Dear {} we have reset your password, your new password is: {} please login and change your password immediately .\n\n Best regards,\n Tech Haven Team.".format(name,random_str)
+                random_str1 = random.randint(1000000,10000000)
+                random_str = str(random_str1)
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+                    account = cursor.fetchone()
+                    Firstname = account['FirstName']
+                    LastName = account['LastName']
+                    hashpassword = bcrypt.generate_password_hash(random_str)
+                    fullname = "{} {}".format(Firstname,LastName)
+                    sql = 'UPDATE accounts SET PasswordAge = %s, Password= %s WHERE Email = %s'
+                    val = (passwordAge,hashpassword,Email)
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+
+
+                message1 = "Dear {} we have reset your password, your new password is: {} please login and change your password immediately .\n\n Best regards,\n Tech Haven Team.".format(fullname,random_str)
                 message = 'Please check email and follow the instruction.'
                 mail.send_message(
                         sender='tech.haven.we.sell.you.buy@gmail.com',
-                        recipients=[email],
+                        recipients=[Email],
                         subject="password",
                         body=message1
                     )
@@ -1292,10 +1297,19 @@ def forget_password():
 
 
             else:
-                error = "Please enter a registered email account!"
+                message1 = "Dear customer you have not created an account with us. You can create an account by registering with us.\n\n Best regards,\n Tech Haven Team."
+                message = 'Please check email and follow the instruction.'
+                mail.send_message(
+                        sender='tech.haven.we.sell.you.buy@gmail.com',
+                        recipients=[Email],
+                        subject="Forget Password",
+                        body=message1
+                    )
+
+                return render_template("LandingSite.html", message=message)
 
 
-    db.close()
+
 
     return render_template('forget_password.html', form=form ,error=error)
 
