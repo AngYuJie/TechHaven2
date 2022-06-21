@@ -126,8 +126,23 @@
       </div>
     </div>
 
+          <div class="form-group">
+          <div class="form-row">
+ {{form.recaptcha}}
+    {%for error in form.recaptcha.errors%}
+    <ul>
+        <li style="color:red;">
+            {{error}}
+        </li>
+        {% endfor %}
+
+    </ul>
 
 
+    {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}
+   {% endif %}
+</div></div>
 
 
 
