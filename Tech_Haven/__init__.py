@@ -120,6 +120,7 @@ def login():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
             cursor.execute('SELECT * FROM accounts WHERE Email = %s', (Email,))
             g.account = cursor.fetchone()
+        if g.account:
             user_hashPassword = g.account['Password']
             NoOfFailedAttemps = g.account['NoOfFailedAttemps']
             firstName = g.account['FirstName']
@@ -128,46 +129,65 @@ def login():
             AccountStatus = g.account['AccountStatus']
             AccountType = g.account['AccountType']
 
-        if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, AccountStatus =%s  WHERE Email = %s'
-                val = (NoOfFailedAttemps,'Suspended',Email)
-                cursor.execute(sql,val)
-                mysql.connection.commit()
-                error = 'Your Account Has been temporarly suspended.'
+            if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, AccountStatus =%s  WHERE Email = %s'
+                    val = (NoOfFailedAttemps,'Suspended',Email)
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+                    error = 'Your Account Has been temporarly suspended.'
+
+            elif int(NoOfFailedAttemps) > 3 and AccountStatus!="Suspended":
+                message1 = "Dear {} {} you have failed to login to your account {} times.\nIf you have forgotten your password please proceed via the forget password url on our login page.\n\n Best regards,\n Tech Haven Team.".format(firstName,lastName,NoOfFailedAttemps)
+                error = 'Please check email and follow the instruction.'
+                mail.send_message(
+                        sender='tech.haven.we.sell.you.buy@gmail.com',
+                        recipients=[Email],
+                        subject="password",
+                        body=message1
+                    )
 
 
-        elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus!='Suspended':
-            session['user_id'] = g.account['Id']
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                val = ("0",None,None,Email)
-                cursor.execute(sql,val)
-                mysql.connection.commit()
 
-            return redirect(url_for('home'))
+            if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus!='Suspended':
+                session['user_id'] = g.account['Id']
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
+                    val = ("0",None,None,Email)
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+
+                return redirect(url_for('home'))
+
+
+            else:
+                todaydate = date.today()
+                failedDate = todaydate.strftime("%Y-%D-%M")
+                todayTime = datetime.today()
+                failedTime = todayTime.strftime("%H:%M:%S")
+                test = int(NoOfFailedAttemps)+1
+
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
+                    val = (test,failedDate,failedTime,Email)
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+
+
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
+                    mysql.connection.commit()
+                    error = 'Invalid Credentials. Please try again.'
 
         else:
-            todaydate = date.today()
-            failedDate = todaydate.strftime("%Y-%D-%M")
-
-            todayTime = datetime.today()
-            failedTime = todayTime.strftime("%H:%M:%S")
-
-            test = int(NoOfFailedAttemps)+1
-
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-
-                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                val = (test,failedDate,failedTime,Email)
-                cursor.execute(sql,val)
-                mysql.connection.commit()
-
-
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
-                mysql.connection.commit()
-            error = 'Invalid Credentials. Please try again.'
+            message1 = "Hi you have not made an account with us yet.\n\n Best regards,\n Tech Haven Team."
+            error = 'Please check email and follow the instruction.'
+            mail.send_message(
+                        sender='tech.haven.we.sell.you.buy@gmail.com',
+                        recipients=[Email],
+                        subject="password",
+                        body=message1
+                    )
 
     return render_template('login.html',form=form, error=error)
 
@@ -176,23 +196,10 @@ def login():
 # Register Page Yu Jie
 @app.route('/register', methods=["GET", "POST"])
 def register():
-    global random_str, user_id, email, attempts_left
     form = RegisterForm(request.form)
     todaydate = date.today()
     current_date = todaydate.strftime("%Y-%D-%M")
-
     if request.method == 'POST' and form.validate():
-        if 'pin' in request.form:
-            pin_input = request.form['pin']
-            if attempts_left > 1:
-                if pin_input == random_str:
-                    session['user_id'] = user_id
-                else:
-                    attempts_left -=1
-                    error = "Pin is incorrect. You have {} attempts left.".format(attempts_left)
-            else:
-                error='you have enter the wrong pin too many times.'
-        else:
             FirstName = form.first_name.data
             LastName = form.last_name.data
             Password = form.password.data
