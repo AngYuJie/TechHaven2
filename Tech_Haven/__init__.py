@@ -20,7 +20,7 @@ from flask_bcrypt import Bcrypt
 from datetime import date, datetime, timedelta
 import base64
 bcrypt = Bcrypt()
-from TempTest import *
+from Tech_Haven.TempTest import *
 
 
 
@@ -119,10 +119,8 @@ def login():
         session.clear()
         list = []
         Email = form.email.data
-        print(Email)
         list.append(Email)
         encodedEmail = encoding(list)
-        print(encodedEmail)
         Password = form.password.data
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
@@ -1317,22 +1315,26 @@ def forget_password():
         session.pop('user_id', None)
 
         Email = form.email.data
+        list = [Email]
+        encodedEmail = encoding(list)
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+            cursor.execute('SELECT * FROM accounts where Email = %s', (encodedEmail,))
             account = cursor.fetchone()
             if account:
                 error = None
                 random_str1 = random.randint(1000000,10000000)
                 random_str = str(random_str1)
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+                    cursor.execute('SELECT * FROM accounts where Email = %s', (encodedEmail,))
                     account = cursor.fetchone()
                     Firstname = account['FirstName']
                     LastName = account['LastName']
                     hashpassword = bcrypt.generate_password_hash(random_str)
-                    fullname = "{} {}".format(Firstname,LastName)
+                    list = [Firstname,LastName]
+                    decodingNames = decoding(list)
+                    fullname = "{} {}".format(decodingNames[0],decodingNames[1])
                     sql = 'UPDATE accounts SET PasswordAge = %s, Password= %s WHERE Email = %s'
-                    val = (passwordAge,hashpassword,Email)
+                    val = (passwordAge,hashpassword,encodedEmail)
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
