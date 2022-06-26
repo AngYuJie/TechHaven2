@@ -18,8 +18,9 @@ import MySQLdb.cursors
 import re
 from flask_bcrypt import Bcrypt
 from datetime import date, datetime, timedelta
-
+import base64
 bcrypt = Bcrypt()
+from TempTest import *
 
 
 
@@ -95,6 +96,10 @@ def before_request():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
             cursor.execute('SELECT * FROM accounts WHERE Id = %s', (session['user_id'],))
             g.account = cursor.fetchone()
+            test = [g.account['FirstName'],g.account['LastName']]
+            g.account2 = decoding(test)
+
+
 
 
 @app.route('/')
@@ -112,13 +117,16 @@ def login():
     error = ''
     if request.method == 'POST' and form.validate():
         session.clear()
-
+        list = []
         Email = form.email.data
-
+        print(Email)
+        list.append(Email)
+        encodedEmail = encoding(list)
+        print(encodedEmail)
         Password = form.password.data
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (Email,))
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
             g.account = cursor.fetchone()
         if g.account:
             user_hashPassword = g.account['Password']
@@ -129,10 +137,12 @@ def login():
             AccountStatus = g.account['AccountStatus']
             AccountType = g.account['AccountType']
 
+
+
             if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, AccountStatus =%s  WHERE Email = %s'
-                    val = (NoOfFailedAttemps,'Suspended',Email)
+                    val = (NoOfFailedAttemps,'Suspended',encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
                     error = 'Your Account Has been temporarly suspended.'
@@ -153,7 +163,7 @@ def login():
                 session['user_id'] = g.account['Id']
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = ("0",None,None,Email)
+                    val = ("0",None,None,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
@@ -169,13 +179,13 @@ def login():
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = (test,failedDate,failedTime,Email)
+                    val = (test,failedDate,failedTime,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
+                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, encodedEmail[0],mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
                     mysql.connection.commit()
                     error = 'Invalid Credentials. Please try again.'
 
@@ -209,6 +219,8 @@ def register():
             UnitNumber = form.unit_number.data
             MobileNumber = form.mobile_number.data
             hashpassword = bcrypt.generate_password_hash(Password)
+            list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber]
+            encoder = encoding(list)
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
                 account = cursor.fetchone()
@@ -219,7 +231,8 @@ def register():
 
                 else:
                     with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s)',(FirstName, LastName, hashpassword, Email, Street,PostalCode,UnitNumber,MobileNumber,current_date,"Customer",0,'Active'))
+                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s)',
+                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Customer",0,'Active'))
                         mysql.connection.commit()
                         session['user_created'] = "You"
 
@@ -274,47 +287,37 @@ def update_profile(id):
         elif not allowed_file(avatar.filename):
             fileTypeError = 'Invalid file type. (Only accepts .png, .jpg, .jpeg, and .gif files)'
             return render_template('updateProfile.html', id=id, form=update_user_form, fileTypeError=fileTypeError)
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT email FROM accounts")
+            userdata = cursor.fetchone()
+
         for key in users:
-            user_obj = users.get(key)
-            email = user_obj.get_email()
-            if update_user_form.email.data == user.get_email():
-                break
-            if update_user_form.email.data == email:
+            if update_user_form.email.data == key:
                 emailError = "Email has already been registered!"
                 return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
-        user.set_email(update_user_form.email.data)
-        user.set_first_name(update_user_form.first_name.data)
-        user.set_last_name(update_user_form.last_name.data)
-        user.set_street(update_user_form.street.data)
-        user.set_postal_code(update_user_form.postal_code.data)
-        user.set_unit_number(update_user_form.unit_number.data)
-        user.set_mobile_number(update_user_form.mobile_number.data)
-        user.set_password(generate_password_hash(update_user_form.password.data, method='sha256'))
-
-        db['Users'] = users
-
-        db.close()
-
-        session['user_updated'] = user.get_first_name() + ' ' + user.get_last_name()
+        hashpassword = bcrypt.generate_password_hash(update_user_form.password)
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('UPDATE accounts set Email = "%s", Passwords = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s"' %(update_user_form.email,hashpassword,update_user_form.first_name.data,update_user_form.last_name.data,update_user_form.street.data,update_user_form.postal_code.data,update_user_form.unit_number.data,update_user_form.mobile_number.data))
+            mysql.connection.commit()
+            cursor.execute("SELECT * FROM accounts where id = %s" %(id,))
+            data=cursor.fetchone()
+            session['user_updated'] = data['FirstName']+" "+data['LastName']
         session['profile_updated'] = 'Profile successfully updated!'
         return redirect(url_for('profile'))
     else:
-        users_dict = {}
-        db = shelve.open('register.db', 'r')
-        users_dict = db['Users']
-        db.close()
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM accounts where Id=%s" %(id,))
+            userdata = cursor.fetchone()
+        update_user_form.first_name.data = userdata['FirstName']
+        update_user_form.last_name.data = userdata['LastName']
+        update_user_form.street.data = userdata['Street']
+        update_user_form.postal_code.data = userdata['PostalCode']
+        update_user_form.unit_number.data = userdata['UnitNumber']
+        update_user_form.mobile_number.data = userdata['MobileNumber']
+        update_user_form.email.data = userdata['Email']
+        update_user_form.password.data = userdata['Passwords']
 
-        user = users_dict.get(id)
-        update_user_form.first_name.data = user.get_first_name()
-        update_user_form.last_name.data = user.get_last_name()
-        update_user_form.street.data = user.get_street()
-        update_user_form.postal_code.data = user.get_postal_code()
-        update_user_form.unit_number.data = user.get_unit_number()
-        update_user_form.mobile_number.data = user.get_mobile_number()
-        update_user_form.email.data = user.get_email()
-        update_user_form.password.data = user.get_password()
-
-        if 'user_id' in session and session['user_id'] == user.get_user_id():
+        if 'user_id' in session and session['user_id'] == userdata["Id"]:
             return render_template('updateProfile.html', form=update_user_form)
         else:
             return 'You do not have authorized access to this webpage.'
@@ -327,7 +330,23 @@ def update_profile(id):
 
 @app.route('/profile')
 def profile():
-    return render_template('profile.html')
+    user_id = session['user_id']
+    #print(user_id)
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute("select * from accounts where Id = %s" % user_id)
+        userdata = cursor.fetchone()
+        list = [userdata['FirstName'],
+                userdata['LastName'],
+                userdata['Street'],
+                userdata['PostalCode'],
+                userdata['UnitNumber'],
+                userdata['MobileNumber'],
+                userdata['Email']]
+        decodedList = decoding(list)
+        id = userdata['Id']
+
+    #print(userdata)
+    return render_template('profile.html', data=decodedList, data2=userdata)
 
 @app.route('/logout')
 def logout():
