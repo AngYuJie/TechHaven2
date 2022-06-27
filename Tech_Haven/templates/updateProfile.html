@@ -75,7 +75,7 @@ img {
   <div class="form-group">
     <label for="avatar">Current Profile Picture:</label><br>
     <div class="profpic">
-      <img src="{{ g.user.avatar }}">
+      <img src="/static/ProfilePhotos/{{profile_pic}}">
     </div>
     <input type="file" name="avatar">
     {% if fileTypeError %}
