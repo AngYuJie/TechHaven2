@@ -183,7 +183,7 @@ def login():
 
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, encodedEmail[0],mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
+                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
                     mysql.connection.commit()
                     error = 'Invalid Credentials. Please try again.'
 
@@ -201,7 +201,6 @@ def login():
 
 
 
-# Register Page Yu Jie
 @app.route('/register', methods=["GET", "POST"])
 def register():
     form = RegisterForm(request.form)
@@ -229,8 +228,8 @@ def register():
 
                 else:
                     with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s)',
-                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Customer",0,'Active'))
+                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s,%s)',
+                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Customer",0,'Active','default.jpg'))
                         mysql.connection.commit()
                         session['user_created'] = "You"
 
@@ -249,77 +248,117 @@ def update_profile(id):
 
     #Validation if request method is post and
     if request.method == 'POST' and update_user_form.validate():
+       if "avatar" in request.files:
+            avatar = request.files['avatar']
+            if avatar.filename == '':
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute("select ProfilePhoto from accounts where id = %s" % id)
+                    filename = cursor.fetchone()["ProfilePhoto"]
+                    #print(filename)
 
-        # A empty dictionary
-        users = {}
+            elif avatar and allowed_file(avatar.filename):
+                filename = secure_filename(avatar.filename)
 
-        #opens the database of register.db, method of write
-        db = shelve.open('register.db', 'w')
+                ver = 0
+                while os.path.isfile('/static/ProfilePhotos/' + filename):  # if theres existing file
+                    ver += 1
+                    for filetype in ALLOWED_EXTENSIONS:
+                        if filetype in filename.split('.'):
+                            filename = avatar.filename.split('.')[0] + str(ver) + '.' + avatar.filename.split('.')[-1]
 
-        #store the database with Users key to the users dictionary.
-        users = db['Users']
+                filepath = '/static/ProfilePhotos/' + filename
+
+                avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            elif not allowed_file(avatar.filename):
+                fileTypeError = 'Invalid file type. (Only accepts .png, .jpg, .jpeg, and .gif files)'
+                return render_template('updateProfile.html', id=id, form=update_user_form, fileTypeError=fileTypeError)
+
+            # update user information
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute("SELECT Email FROM accounts")
+                # Fetch one record and return result
+                userdata = cursor.fetchone()
+                list = [userdata['FirstName'],
+                userdata['LastName'],
+                userdata['Street'],
+                userdata['PostalCode'],
+                userdata['UnitNumber'],
+                userdata['MobileNumber'],
+                userdata['Email']]
+                decodedList = decoding(list)
+                list2 = [update_user_form.first_name.data,
+                         update_user_form.last_name.data,
+                         update_user_form.street.data,
+                         update_user_form.postal_code.data,
+                         update_user_form.unit_number.data,
+                         update_user_form.mobile_number.data,
+                         update_user_form.email.data]
+                encodedlist = encoding(list2)
+
+            for key in decodedList[6]:
+                if update_user_form.email.data == key:
+                    emailError = "Email has already been registered!"
+                    return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
+
+            hashpassword = bcrypt.generate_password_hash(update_user_form.password)
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM accounts where id = %s" % (id,))
+                userdata = cursor.fetchone()
+            if hashpassword != userdata['Password']:
+                PasswordAge = date.today()
+            else:
+                PasswordAge = userdata["PasswordAge"]
 
 
-        user = users.get(id)
-
-
-        avatar = request.files['avatar']
-        if user.avatar is None:
-            setattr(user, 'avatar', '/static/ProfilePhotos/Default.jpg')
-        elif avatar.filename == '':
-            setattr(user, 'avatar', user.avatar)
-        elif avatar and allowed_file(avatar.filename):
-            filename = secure_filename(avatar.filename)
-
-            ver = 0
-            while os.path.isfile('/static/ProfilePhotos/' + filename):  # if theres existing file
-                ver += 1
-                for filetype in ALLOWED_EXTENSIONS:
-                    if filetype in filename.split('.'):
-                        filename = avatar.filename.split('.')[0] + str(ver) + '.' + avatar.filename.split('.')[-1]
-
-            filepath = '/static/ProfilePhotos/' + filename
-
-            avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            setattr(user, 'avatar', filepath)
-        elif not allowed_file(avatar.filename):
-            fileTypeError = 'Invalid file type. (Only accepts .png, .jpg, .jpeg, and .gif files)'
-            return render_template('updateProfile.html', id=id, form=update_user_form, fileTypeError=fileTypeError)
-        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute("SELECT email FROM accounts")
-            userdata = cursor.fetchone()
-
-        for key in users:
-            if update_user_form.email.data == key:
-                emailError = "Email has already been registered!"
-                return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
-        hashpassword = bcrypt.generate_password_hash(update_user_form.password)
-        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute('UPDATE accounts set Email = "%s", Passwords = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s"' %(update_user_form.email,hashpassword,update_user_form.first_name.data,update_user_form.last_name.data,update_user_form.street.data,update_user_form.postal_code.data,update_user_form.unit_number.data,update_user_form.mobile_number.data))
-            mysql.connection.commit()
-            cursor.execute("SELECT * FROM accounts where id = %s" %(id,))
-            data=cursor.fetchone()
-            session['user_updated'] = data['FirstName']+" "+data['LastName']
-        session['profile_updated'] = 'Profile successfully updated!'
-        return redirect(url_for('profile'))
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('UPDATE accounts set Email = "%s", Passwords = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s", PasswordAge = "%s", ProfilePhoto = "%s" WHERE Id ="%s"' %
+                               (encodedlist[6],
+                                hashpassword,
+                                encodedlist[0],
+                                encodedlist[1],
+                                encodedlist[2],
+                                encodedlist[3],
+                                encodedlist[4],
+                                encodedlist[5],
+                                PasswordAge,
+                                filename,
+                                id))
+                mysql.connection.commit()
+                cursor.execute("select FirstName,LastName from accounts where Id = %s" % id)
+                data = cursor.fetchone()
+                session['user_updated'] = data["FirstName"] + ' ' + data["LastName"]
+            session['profile_updated'] = 'Profile successfully updated!'
+            return redirect(url_for('profile'))
     else:
-        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM accounts where Id=%s" %(id,))
-            userdata = cursor.fetchone()
-        update_user_form.first_name.data = userdata['FirstName']
-        update_user_form.last_name.data = userdata['LastName']
-        update_user_form.street.data = userdata['Street']
-        update_user_form.postal_code.data = userdata['PostalCode']
-        update_user_form.unit_number.data = userdata['UnitNumber']
-        update_user_form.mobile_number.data = userdata['MobileNumber']
-        update_user_form.email.data = userdata['Email']
-        update_user_form.password.data = userdata['Passwords']
 
-        if 'user_id' in session and session['user_id'] == userdata["Id"]:
-            return render_template('updateProfile.html', form=update_user_form)
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM accounts where id = %s" % (id,))
+            # Fetch one record and return result
+            userdata = cursor.fetchone()
+            list = [userdata['FirstName'],
+                userdata['LastName'],
+                userdata['Street'],
+                userdata['PostalCode'],
+                userdata['UnitNumber'],
+                userdata['MobileNumber'],
+                userdata['Email']]
+            decodedList = decoding(list)
+        #print(userdata)
+
+        update_user_form.first_name.data = decodedList[0]
+        update_user_form.last_name.data = decodedList[1]
+        update_user_form.street.data = decodedList[2]
+        update_user_form.postal_code.data = decodedList[3]
+        update_user_form.unit_number.data = decodedList[4]
+        update_user_form.mobile_number.data = decodedList[5]
+        update_user_form.email.data = decodedList[6]
+
+        if 'user_id' in session and session['user_id'] in [userdata['Id'], 1]:
+            return render_template('updateProfile.html', form=update_user_form, profile_pic=userdata['ProfilePhoto'],
+                                   user_id=id)
         else:
             return 'You do not have authorized access to this webpage.'
-
 
 
 
@@ -1071,6 +1110,40 @@ def create_analysis():
                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
 
+# @app.route('/Report')
+# def create_analysis():
+#     analysis_dict = {}
+#     analysis_list = {}
+#
+#
+#     analysis_db = shelve.open('analysis.db', 'c')
+#     try:
+#         analysis_quantity_dict = analysis_db['Analysis_quantity']
+#     except:
+#         print('error')
+#
+#     try:
+#         analysis_revenue_dict = analysis_db['Analysis_revenue']
+#     except:
+#         print('error')
+#
+#
+#     analysis_quantity_dict_x = []
+#     analysis_quantity_dict_y = []
+#     for i in analysis_quantity_dict:
+#         analysis_quantity_dict_x.append(i)
+#         analysis_quantity_dict_y.append(analysis_quantity_dict[i])
+#
+#     analysis_revenue_dict_x = []
+#     analysis_revenue_dict_y = []
+#     for i in analysis_revenue_dict:
+#         analysis_revenue_dict_x.append(i)
+#         analysis_revenue_dict_y.append(analysis_revenue_dict[i])
+#
+#
+#     return render_template('Report.html',
+#                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
+#                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
 @app.route('/viewProducts')
 def view_products_admin():
     db = shelve.open('products.db', 'c')
@@ -1324,6 +1397,7 @@ def forget_password():
                 error = None
                 random_str1 = random.randint(1000000,10000000)
                 random_str = str(random_str1)
+
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     cursor.execute('SELECT * FROM accounts where Email = %s', (encodedEmail,))
                     account = cursor.fetchone()
