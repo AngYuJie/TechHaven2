@@ -45,7 +45,7 @@ app.config['RECAPTCHA_PUBLIC_KEY']="6LfwyoAgAAAAAAf538D06BxhxmTsVzWhsrC8qjqe"
 app.config['RECAPTCHA_PRIVATE_KEY']='6LfwyoAgAAAAAPgU74ccglcygPwEUi8ph1GdJ4zi'
 ######################## CAPTCHA ############################################
 
-
+ 
 # Initialize MySQL
 mysql = MySQL(app)
 
