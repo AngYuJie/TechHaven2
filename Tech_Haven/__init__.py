@@ -45,7 +45,7 @@ app.config['RECAPTCHA_PUBLIC_KEY']="6LfwyoAgAAAAAAf538D06BxhxmTsVzWhsrC8qjqe"
 app.config['RECAPTCHA_PRIVATE_KEY']='6LfwyoAgAAAAAPgU74ccglcygPwEUi8ph1GdJ4zi'
 ######################## CAPTCHA ############################################
 
- 
+
 # Initialize MySQL
 mysql = MySQL(app)
 
@@ -126,6 +126,7 @@ def login():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
             cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
             g.account = cursor.fetchone()
+
         if g.account:
             user_hashPassword = g.account['Password']
             NoOfFailedAttemps = g.account['NoOfFailedAttemps']
@@ -165,7 +166,19 @@ def login():
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
-                return redirect(url_for('home'))
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+                    account = cursor.fetchone()
+                    CurrentPasswordAge = account['PasswordAge']
+                    todaydate = date.today()
+                    delta = todaydate - CurrentPasswordAge
+                    print(delta.days)
+                    if int(delta.days) > 30:
+                        message = "password age is more than 30 days!"
+                    else:
+                        message = 'test'
+                flash(message)
+                return redirect(url_for('home',message=message))
 
 
             else:
@@ -219,7 +232,7 @@ def register():
             list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber]
             encoder = encoding(list)
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+                cursor.execute('SELECT * FROM accounts where Email = %s', (encoder[2],))
                 account = cursor.fetchone()
 
                 if account:
@@ -245,14 +258,13 @@ def register():
 def update_profile(id):
     #Set Update_user_form to inheriet RegistrationForm(Form) Class
     update_user_form = RegisterForm(request.form)
-
     #Validation if request method is post and
     if request.method == 'POST' and update_user_form.validate():
        if "avatar" in request.files:
             avatar = request.files['avatar']
             if avatar.filename == '':
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute("select ProfilePhoto from accounts where id = %s" % id)
+                    cursor.execute("select ProfilePhoto from accounts where Id = %s" % id)
                     filename = cursor.fetchone()["ProfilePhoto"]
                     #print(filename)
 
@@ -277,16 +289,38 @@ def update_profile(id):
             # update user information
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 cursor.execute("SELECT Email FROM accounts")
+                userdata = cursor.fetchall()
+                decodedList= [userdata]
                 # Fetch one record and return result
+                # userdata = cursor.fetchone()
+                # list = [userdata['FirstName'],
+                # userdata['LastName'],
+                # userdata['Street'],
+                # userdata['PostalCode'],
+                # userdata['UnitNumber'],
+                # userdata['MobileNumber'],
+                # userdata['Email']]
+                # decodedList = decoding(list)
+                # print(decodedList)
+                # list2 = [update_user_form.first_name.data,
+                #          update_user_form.last_name.data,
+                #          update_user_form.street.data,
+                #          update_user_form.postal_code.data,
+                #          update_user_form.unit_number.data,
+                #          update_user_form.mobile_number.data,
+                #          update_user_form.email.data]
+                # encodedlist = encoding(list2)
+
+
+            for key in decodedList:
+                if update_user_form.email.data == key:
+                    emailError = "Email has already been registered!"
+                    return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
+
+            hashpassword = bcrypt.generate_password_hash(update_user_form.password)
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM accounts WHERE Id = %s', (id,))
                 userdata = cursor.fetchone()
-                list = [userdata['FirstName'],
-                userdata['LastName'],
-                userdata['Street'],
-                userdata['PostalCode'],
-                userdata['UnitNumber'],
-                userdata['MobileNumber'],
-                userdata['Email']]
-                decodedList = decoding(list)
                 list2 = [update_user_form.first_name.data,
                          update_user_form.last_name.data,
                          update_user_form.street.data,
@@ -294,17 +328,10 @@ def update_profile(id):
                          update_user_form.unit_number.data,
                          update_user_form.mobile_number.data,
                          update_user_form.email.data]
+                print(list2)
                 encodedlist = encoding(list2)
 
-            for key in decodedList[6]:
-                if update_user_form.email.data == key:
-                    emailError = "Email has already been registered!"
-                    return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
 
-            hashpassword = bcrypt.generate_password_hash(update_user_form.password)
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM accounts where id = %s" % (id,))
-                userdata = cursor.fetchone()
             if hashpassword != userdata['Password']:
                 PasswordAge = date.today()
             else:
@@ -312,7 +339,7 @@ def update_profile(id):
 
 
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                cursor.execute('UPDATE accounts set Email = "%s", Passwords = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s", PasswordAge = "%s", ProfilePhoto = "%s" WHERE Id ="%s"' %
+                cursor.execute('UPDATE accounts set Email = "%s", Password = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s", PasswordAge = "%s", ProfilePhoto = "%s" WHERE Id ="%s"' %
                                (encodedlist[6],
                                 hashpassword,
                                 encodedlist[0],
@@ -325,7 +352,7 @@ def update_profile(id):
                                 filename,
                                 id))
                 mysql.connection.commit()
-                cursor.execute("select FirstName,LastName from accounts where Id = %s" % id)
+                cursor.execute("SELECT FirstName,LastName from accounts where Id = %s" % id)
                 data = cursor.fetchone()
                 session['user_updated'] = data["FirstName"] + ' ' + data["LastName"]
             session['profile_updated'] = 'Profile successfully updated!'
@@ -333,7 +360,7 @@ def update_profile(id):
     else:
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute("SELECT * FROM accounts where id = %s" % (id,))
+            cursor.execute("SELECT * FROM accounts where Id = %s" % (id,))
             # Fetch one record and return result
             userdata = cursor.fetchone()
             list = [userdata['FirstName'],
@@ -346,7 +373,7 @@ def update_profile(id):
             decodedList = decoding(list)
         #print(userdata)
 
-        update_user_form.first_name.data = decodedList[0]
+        update_user_form.first_name.data =decodedList[0]
         update_user_form.last_name.data = decodedList[1]
         update_user_form.street.data = decodedList[2]
         update_user_form.postal_code.data = decodedList[3]
@@ -381,9 +408,19 @@ def profile():
                 userdata['Email']]
         decodedList = decoding(list)
         id = userdata['Id']
+        CurrentPasswordAge = userdata['PasswordAge']
+        todaydate = date.today()
+        delta = todaydate - CurrentPasswordAge
+        print(delta.days)
+        if int(delta.days) > 30:
+            message = "Your password age is more than 30 days!"
+        else:
+            message = ''
+
+
 
     #print(userdata)
-    return render_template('profile.html', data=decodedList, data2=userdata)
+    return render_template('profile.html', data=decodedList, data2=userdata,message=message)
 
 @app.route('/logout')
 def logout():
@@ -723,6 +760,7 @@ def cart():
                cart_list.pop(i)
            else:
                i += 1
+        cart_list.pop(product_id)
         cart_dict[user_id] = cart_list
         db['Cart'] = cart_dict
 
