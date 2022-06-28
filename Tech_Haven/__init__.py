@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm, reportForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
