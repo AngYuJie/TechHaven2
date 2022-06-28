@@ -33,7 +33,16 @@
   {{ session.pop('profile_updated', None) }}
 </div>
 {% endif %}
+       {% if message %}
+<!--                       <h1 class="message" style="color:red;"><strong>Message:</strong> {{ message }}</h1>-->
+                                        <div class="alert alert-success alert-dismissible">
+                                       <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            {{ message }}
+                                           </div>
+                                            {% endif %}
 <div class="form-detail">
+
+
 
     <div class="form-left">
       <h2>General Infomation</h2>
