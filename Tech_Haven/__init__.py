@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm, reportForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -194,9 +194,10 @@ def login():
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
-
+                EncodedItems = [firstName,lastName,mobileNumber]
+                decodeditems = decoding(EncodedItems)
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
+                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(decodeditems[0], decodeditems[1], Email, decodeditems[2],failedDate,failedTime,AccountType,test,AccountStatus))
                     mysql.connection.commit()
                     error = 'Invalid Credentials. Please try again.'
 
@@ -1147,6 +1148,16 @@ def create_analysis():
     return render_template('Chart.html',
                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
+
+
+@app.route('/Report')
+def create_analysis2():
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute('SELECT * FROM logs')
+        records = cursor.fetchall()
+
+
+    return render_template('ReportGeneration.html',logs=records)
 
 # @app.route('/Report')
 # def create_analysis():
