@@ -135,8 +135,7 @@ def login():
             mobileNumber = g.account['MobileNumber']
             AccountStatus = g.account['AccountStatus']
             AccountType = g.account['AccountType']
-
-
+            FailedLoginDatetime = g.account['FailedLoginDateTime']
 
             if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
@@ -156,13 +155,41 @@ def login():
                         body=message1
                     )
 
+            if FailedLoginDatetime != None:
+                currentDatetime = datetime.now()
+                calculation = currentDatetime - FailedLoginDatetime
+                date_diff = (calculation.total_seconds()/60)
+                print(date_diff)
+                if (int(NoOfFailedAttemps) == 5 or (int(NoOfFailedAttemps) > 5 and date_diff < 30)):
+                    todaydate = date.today()
+                    failedDate = todaydate.strftime("%Y-%D-%M")
+                    todayTime = datetime.today()
+                    failedTime = todayTime.strftime("%H:%M:%S")
+                    failedDateTime = datetime.now()
+                    test = int(NoOfFailedAttemps)+1
+                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                        sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginDateTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                        val = (test ,failedDate,failedDateTime,failedTime,encodedEmail[0])
+                        cursor.execute(sql,val)
+                        mysql.connection.commit()
+
+                    message1 = "Hi you have failed too many times.\n\n Best regards,\n Tech Haven Team."
+                    error = 'oyvey'
+                    mail.send_message(
+                        sender='tech.haven.we.sell.you.buy@gmail.com',
+                        recipients=[Email],
+                        subject="password",
+                        body=message1
+                    )
+                    return render_template('login.html',form=form, error=error)
+
 
 
             if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus!='Suspended':
                 session['user_id'] = g.account['Id']
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = ("0",None,None,encodedEmail[0])
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , FailedLoginDateTime= %s  WHERE Email = %s'
+                    val = ("0",None,None,None,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
@@ -186,11 +213,12 @@ def login():
                 failedDate = todaydate.strftime("%Y-%D-%M")
                 todayTime = datetime.today()
                 failedTime = todayTime.strftime("%H:%M:%S")
+                failedDateTime = datetime.now()
                 test = int(NoOfFailedAttemps)+1
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = (test,failedDate,failedTime,encodedEmail[0])
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginDateTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                    val = (test,failedDate,failedDateTime,failedTime,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
@@ -202,6 +230,13 @@ def login():
                     error = 'Invalid Credentials. Please try again.'
 
         else:
+            todaydate = date.today()
+            failedDate = todaydate.strftime("%Y-%D-%M")
+            todayTime = datetime.today()
+            failedTime = todayTime.strftime("%H:%M:%S")
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('INSERT INTO unregisteredlogs VALUES (NULL, %s, %s, %s)',(Email,failedDate,failedTime))
+                    mysql.connection.commit()
             message1 = "Hi you have not made an account with us yet.\n\n Best regards,\n Tech Haven Team."
             error = 'Please check email and follow the instruction.'
             mail.send_message(
@@ -242,7 +277,7 @@ def register():
 
                 else:
                     with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,%s,%s,%s,%s,%s)',
+                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s)',
                                        (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Customer",0,'Active','default.jpg'))
                         mysql.connection.commit()
                         session['user_created'] = "You"
