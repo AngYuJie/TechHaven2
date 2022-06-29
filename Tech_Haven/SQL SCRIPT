@@ -5,12 +5,13 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 `Id` int(11) NOT NULL AUTO_INCREMENT,
 `FirstName` varchar(100) NOT NULL,
 `LastName` varchar(100) NOT NULL,
-`Password` varchar(255) NOT NULL,logs
+`Password` varchar(255) NOT NULL,
 `Email` varchar(100) NOT NULL,
 `Street` varchar(60) NOT NULL,
 `PostalCode` varchar(100) NOT NULL,
 `UnitNumber` varchar(100) NOT NULL,
 `MobileNumber` varchar(100) NOT NULL,
+`FailedLoginDateTime` datetime NULL DEFAULT NULL,
 `FailedLoginDate` DATE NULL DEFAULT NULL,
 `FailedLoginTime` TIME NULL DEFAULT NULL,
 `PasswordAge` DATE NULL DEFAULT NULL,
@@ -22,6 +23,8 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE IF NOT EXISTS `Logs` (
 `LogID` int(11) NOT NULL AUTO_INCREMENT,
 `FirstName` varchar(100) NOT NULL,
@@ -32,7 +35,17 @@ CREATE TABLE IF NOT EXISTS `Logs` (
 `FailedLoginTime` TIME NULL DEFAULT NULL,
 `AccountType` varchar(10) NOT NULL,
 `NoOfFailedAttemps` varchar(2) NOT NULL,
-`AccouaccountsntStatus` varchar(9) NOT NULL,
+`AccountStatus` varchar(9) NOT NULL,
 
+PRIMARY KEY (`LogID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+
+
+CREATE TABLE IF NOT EXISTS `unregisteredLogs` (
+`LogID` int(11) NOT NULL AUTO_INCREMENT,
+`Email` varchar(100) NOT NULL,
+`FailedLoginDate` DATE NULL DEFAULT NULL,
+`FailedLoginTime` TIME NULL DEFAULT NULL,
 PRIMARY KEY (`LogID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
