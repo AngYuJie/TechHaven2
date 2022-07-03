@@ -248,7 +248,11 @@ def login():
 
     return render_template('login.html',form=form, error=error)
 
-
+@app.route('/securityQns')
+def securityQns():
+    form = securityQnsForm(request.form)
+    error = ''
+    return render_template('securityQns.html', form = form)
 
 @app.route('/register', methods=["GET", "POST"])
 def register():
