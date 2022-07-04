@@ -40,7 +40,7 @@
 
 
 
-<form method="POST" action="" class="form-detail">
+<form method="POST" action="" class="">
     <div class="form-left">
       <h2>General Infomation</h2>
 
@@ -80,10 +80,8 @@
         <div class="form-group">
           <div class="form-row">
           <div>Choose your security question</div>
-
             {% for subfield in range(form.securityQn.choices|length) %}
-            <label for="{{subfield}}">{{subfield + 1}}</label>
-            <input type="radio", id = {{subfield}}>{{ form.securityQn.choices[subfield] }}
+            <input type="radio", id = {{subfield}} name = "secQn">{{ form.securityQn.choices[subfield] }}
             <br>
             {% endfor %}
         <span id="span_confirm">&nbsp;</span>
