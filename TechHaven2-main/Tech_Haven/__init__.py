@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -126,6 +126,7 @@ def login():
             cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
             g.account = cursor.fetchone()
 
+#oof
         if g.account:
             user_hashPassword = g.account['Password']
             NoOfFailedAttemps = g.account['NoOfFailedAttemps']
@@ -134,7 +135,7 @@ def login():
             mobileNumber = g.account['MobileNumber']
             AccountStatus = g.account['AccountStatus']
             AccountType = g.account['AccountType']
-            FailedLoginDatetime = g.account['FailedLoginDateTime']
+            NextLoginTime = g.account['NextLoginTime']
 
             if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
@@ -154,9 +155,9 @@ def login():
                         body=message1
                     )
 
-            if FailedLoginDatetime != None:
+            if NextLoginTime != None:
                 currentDatetime = datetime.now()
-                calculation = currentDatetime - FailedLoginDatetime
+                calculation = currentDatetime - NextLoginTime
                 date_diff = (calculation.total_seconds()/60)
                 print(date_diff)
                 if (int(NoOfFailedAttemps) == 5 or (int(NoOfFailedAttemps) > 5 and date_diff < 30)):
@@ -167,7 +168,7 @@ def login():
                     failedDateTime = datetime.now()
                     test = int(NoOfFailedAttemps)+1
                     with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginDateTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                        sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, NextLoginTime= %s, FailedLoginTime = %s  WHERE Email = %s'
                         val = (test ,failedDate,failedDateTime,failedTime,encodedEmail[0])
                         cursor.execute(sql,val)
                         mysql.connection.commit()
@@ -184,10 +185,10 @@ def login():
 
 
 
-            if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus!='Suspended':
+            if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Verified-Customer':
                 session['user_id'] = g.account['Id']
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , FailedLoginDateTime= %s  WHERE Email = %s'
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
                     val = ("0",None,None,None,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
@@ -205,6 +206,9 @@ def login():
                         message = 'test'
                 flash(message)
                 return redirect(url_for('home',message=message))
+            elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Non-Verified-Customer':
+                return redirect(url_for('Verify'))
+
 
 
             else:
@@ -216,7 +220,7 @@ def login():
                 test = int(NoOfFailedAttemps)+1
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginDateTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, NextLoginTime= %s, FailedLoginTime = %s  WHERE Email = %s'
                     val = (test,failedDate,failedDateTime,failedTime,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
@@ -275,20 +279,96 @@ def register():
                     return render_template('register.html', form=form, email_error=email_error)
 
                 else:
-                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s)',
-                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Customer",0,'Active','default.jpg'))
-                        mysql.connection.commit()
-                        session['user_created'] = "You"
+                    currentTime = datetime.now()
+                    random_str1 = random.randint(1000000,10000000)
+                    random_str = str(random_str1)
+                    OtpDateTime = currentTime+timedelta(minutes=30)
 
-                    return redirect(url_for('login'))
+                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s,%s)',
+                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Non-Verified-Customer",0,'Active','default.jpg',random_str,OtpDateTime))
+                        mysql.connection.commit()
+                        confirmation = "We have sent you the OTP an OTP to your email account."
+                        message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
+                        mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
+                        subject="OTP Verification",
+                        body=message)
+                    return redirect(url_for('Verify'))
 
 
     else:
         return render_template('register.html', form=form)
 
 
-#Update User.Yu Jie
+
+@app.route('/ReGenerateOTP', methods=['GET', 'POST'])
+def ReGenerateOTP():
+    form = OTPGform(request.form)
+    if request.method == 'POST' and form.validate():
+        Email = form.email.data
+        encoder = encoding([Email])
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encoder[0],))
+            g.account = cursor.fetchone()
+        if g.account:
+            todaydate = datetime.today()
+            otpAge = todaydate+timedelta(minutes=40)
+            random_str1 = random.randint(1000000,10000000)
+            random_str = str(random_str1)
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                sql = 'UPDATE accounts SET OTP = %s, OTPAge= %s  WHERE Email = %s'
+                val = (random_str,otpAge,encoder[0])
+                cursor.execute(sql,val)
+                mysql.connection.commit()
+                confirmation = "We have sent you the OTP an OTP to your email account."
+                message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
+                mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
+                        subject="OTP Verification",
+                        body=message)
+            return redirect(url_for('Verify'))
+
+
+
+        else:
+                message = 'Invalid Credentials'
+
+    return render_template('ReGenerateOTP.html',form=form)
+
+
+@app.route('/Verify', methods=['GET', 'POST'])
+def Verify():
+    form = OTPForm(request.form)
+    todaydate = datetime.today()
+    if request.method == 'POST' and form.validate():
+        Email = form.email.data
+        inputOTP = form.OTP.data
+        encodedEmail = encoding([Email])
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+            g.account = cursor.fetchone()
+        if g.account:
+            OTP = g.account['OTP']
+            OTPAge = g.account['OTPAge']
+            if inputOTP == OTP:
+                test = 'Verified-Customer'
+                print('YEs')
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    sql = 'UPDATE accounts SET AccountType= %s,  OTP= %s, OTPAge= %s  WHERE Email = %s'
+                    val = (test,None,None,encodedEmail[0])
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+                session['user_created'] = "You"
+                return redirect(url_for('login'))
+
+            else:
+                message = 'Invalid otp / otp timeout pls re generate otp.'
+
+    return render_template('Verify.html',form=form)
+
+
+
+
+
 @app.route('/updateProfile/<int:id>/', methods=['GET', 'POST'])
 def update_profile(id):
     #Set Update_user_form to inheriet RegistrationForm(Form) Class

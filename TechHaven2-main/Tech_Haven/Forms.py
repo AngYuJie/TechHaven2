@@ -57,3 +57,12 @@ class ForgetPasswordForm(Form):
 class PasswordResetForm(Form):
     current_password = PasswordField('Current Password',[validators.DataRequired(), validators.Length(min=4, max=80)])
     submit = SubmitField(label='Login', validators=[DataRequired()])
+
+class OTPForm(Form):
+    email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
+    OTP = StringField('OTP PIN', [validators.Length(min=6, max=10), validators.DataRequired()])
+    recaptcha = RecaptchaField()
+
+class OTPGform(Form):
+    email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
+    recaptcha = RecaptchaField()
