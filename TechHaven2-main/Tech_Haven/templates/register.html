@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Tech Haven- Create User{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+<style>
+  form {border: 5px solid #f1f1f1; width: 80%; height: 100%; display: in-block; padding: 20px 40px; margin: auto;}
+  .form-group {width: 100%;}
+  .container {padding: 20px 60px;}
+  .btn-holder{text-align: center;}
+  .form-right {color:white;}
+
+  ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: grey !important;
+  opacity: 1 !important; /* Firefox */
+}
+
+  ::-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: grey !important;
+}
+
+  ::-ms-input-placeholder { /* Microsoft Edge */
+  color: grey !important;
+}
+
+    #span_first_name, #span_last_name, #span_password, #span_confirm, #span_street, #span_postal_code, #span_unit_number, #span_mobile_number, #span_email {
+        font-size: 14px;
+        color: red;
+    }
+
+</style>
+
+
+
+<!--<script src="static/Js/Login Form/Register.js"></script>-->
+<body class="form-v10">
+<script src="/static/Js/Register/Register.js"></script>
+<div class="page-content">
+  <div class="form-v10-content">
+
+
+
+<form method="POST" action="" class="form-detail">
+    <div class="form-left">
+      <h2>General Infomation</h2>
+
+
+    <div class="form-group">
+      <div class="form-row form-row-1">
+          {{ render_field(form.first_name, class="form-control" ) }}
+          <span id="span_first_name">&nbsp;</span>
+      </div>
+
+
+
+
+
+
+
+      <div class="form-row form-row-2">
+          {{ render_field(form.last_name, class="form-control") }}
+          <span id="span_last_name">&nbsp;</span>
+      </div>
+
+
+    </div>
+
+      <div class="form-row">
+          {{ render_field(form.password, class="form-control") }}
+          <span id="span_password">&nbsp;</span>
+      </div>
+
+      <div class="form-group">
+        <div class="form-row form-row-3">
+            {{ render_field(form.confirm, class="form-control") }}
+            <span id="span_confirm">&nbsp;</span>
+        </div>
+      </div>
+
+    </div>
+
+
+
+  <div class="form-right">
+    <h2>Contact Details</h2>
+    <div class="form-row">
+          {{ render_field(form.street, class="form-control") }}
+          <span id="span_street">&nbsp;</span>
+    </div>
+
+    <div class="form-group">
+      <div class="form-row form-row-1">
+          {{ render_field(form.postal_code, class="form-control") }}
+          <span id="span_postal_code">&nbsp;</span>
+      </div>
+
+      <div class="form-row form-row-2">
+          {{ render_field(form.unit_number, class="form-control") }}
+          <span id="span_unit_number">&nbsp;</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-row">
+          {{ render_field(form.mobile_number, class="form-control") }}
+          <span id="span_mobile_number">
+              {% if error %}
+                {{ error_number }}
+              {% else %}
+                  &nbsp;
+              {% endif %}
+          </span>
+      </div>
+    </div>
+
+    <div class="form-group">
+          <div class="form-row">
+      {{ render_field(form.email, class="form-control") }}
+      <span id="span_email">
+          {% if error %}
+            {{ error }}
+          {% else %}
+              &nbsp;
+          {% endif %}
+      </span>
+      </div>
+    </div>
+
+          <div class="form-group">
+          <div class="form-row">
+ {{form.recaptcha}}
+    {%for error in form.recaptcha.errors%}
+    <ul>
+        <li style="color:red;">
+            {{error}}
+        </li>
+        {% endfor %}
+
+    </ul>
+
+
+    {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}
+   {% endif %}
+</div></div>
+
+
+
+    <div class="form-row-last">
+      <input type="button" value="Register" class="register" class="btn btn-primary" id="button" onclick="check()" style="width: 40%"/>
+    </div>
+
+  </div>
+</form>
+  </div>
+</div>
+</body>
+
+{% endblock %}

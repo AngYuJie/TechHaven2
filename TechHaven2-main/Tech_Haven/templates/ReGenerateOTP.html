@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Tech Haven{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+
+
+<link rel="icon" type="image/png" href="/static/Images/Login Form/favicon.ico"/>
+
+
+
+
+<div class="limiter">
+    <br>
+    <br>
+
+    <div class="container-login100">
+        {% if 'user_created' in session %}
+<div class="alert alert-success alert-dismissible" align="center">
+  <button type="button" class="close" data-dismiss="alert" align="center">&times;</button>
+  {{ session.pop('user_created', None) }} have successfully registered!
+</div>
+{% endif %}
+
+{% if message %}
+<div class="alert alert-success alert-dismissible" align="center">
+    <button type="button" class="close" data-dismiss="alert" align="center">&times;</button>
+     Messsage: {{ message }}
+</div>
+
+{% endif %}
+
+        <br>
+        <div class="wrap-login100">
+
+            <div class="login100-pic js-tilt" data-tilt>
+                <img src="/static/Images/Login Form/img-01.png" alt="IMG">
+                  {% if 'user_created' in session %}
+<div class="alert alert-success alert-dismissible">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{ session.pop('user_created', None) }} have successfully registered!
+</div>
+{% endif %}
+
+{% if message %}
+<div class="alert alert-success alert-dismissible">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+     Messsage: {{ message }}
+</div>
+
+{% endif %}
+
+            </div>
+
+
+
+<form class="login100-form validate-form" action="" method="POST">
+    	<span class="login100-form-title">
+            OTP Generator
+        </span>
+
+
+<!--    data-validate = "Valid email is required: ex@abc.xyz"-->
+
+    <div class="wrap-input100 validate-input" data-validate = "Valid email is required: ex@abc.xyz" >
+        <div class="form-row">
+        {{render_field(form.email, class="form-control")}}
+        </div>
+        </span>
+
+
+    </div>
+
+
+    {{form.recaptcha}}
+    {%for error in form.recaptcha.errors%}
+    <ul>
+        <li style="color:red;">
+            {{error}}
+        </li>
+        {% endfor %}
+
+    </ul>
+
+
+    {% if error %}
+        <p class="error"><strong>Error:</strong> {{ error }}
+   {% endif %}
+
+    <div class="container-login100-form-btn" id="button">
+      	<button class="login100-form-btn">
+            Verify
+        </button>
+
+    </div>
+
+
+
+
+
+
+</form>
+        </div>
+    </div>
+       </div>
+    </div>
+
+
+{% endblock %}

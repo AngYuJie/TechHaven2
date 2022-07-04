@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% block title %}Review Product{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+<style>
+@import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css);
+  .product_info{
+    margin: auto;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border: 1px black solid;
+    position: relative;
+  }
+
+  .reviewForm {
+    border: 1px gray solid;
+    padding: 10px;
+    margin: 10px;
+
+  }
+  .reviewSection:before {
+
+  }
+
+  .reviewSection {
+    border: 1px solid black;
+    width: 99%;
+    height: auto;
+    margin: auto;
+  }
+
+.reviewFormNotLoggedIn, .alreadySubmitted {
+    width: 100%;
+    border: 1px gray solid;
+    padding: 10px;
+    margin: 10px;
+}
+
+.reviewFormNotLoggedIn > p, .alreadySubmitted > p {
+  font-size: 1.5em;
+  margin: 15% 0 10% 0;
+  text-align: center;
+}
+
+
+.button {
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  padding: 20px 10px;
+  color: white;
+  margin: 0 35% 0 35%;
+}
+
+.rating{
+	border: none;
+	float: left;
+}
+
+.rating > input {
+  display: none;
+}
+
+
+.rating > label{
+    font-size: 2em;
+	float: right;
+	cursor: pointer;
+	padding: 5px;
+}
+
+
+.rating > label:before{
+  cursor: pointer;
+  margin: 0px 10px;
+  font-size: 1.5rem;
+  display: inline-block;
+}
+
+
+.rating > input:checked ~ label,
+.rating:not(:checked) > label:hover,
+.rating:not(:checked) > label:hover ~ label{
+	color: #DAA520;
+}
+
+.rating > input:checked + label:hover,
+.rating > input:checked ~ label:hover,
+.rating > label:hover ~ input:checked ~ label,
+.rating > input:checked ~ label:hover ~ label{
+	color: #DAA520;
+}
+
+.reviewsSection {
+  border: 1px solid black;
+  padding: 10px;
+}
+
+.profpic {
+	position: relative;
+    height: 70px;
+    width: 70px;
+    overflow: hidden;
+    border-radius: 50%;
+    margin: 3px;
+    display: flex;
+    justify-content: center;
+	float: left;
+}
+img {
+    display: block;
+    margin: 0 auto;
+    height: 100%;
+    width: auto;
+}
+
+.reviewerName {
+	margin-left: 15px;
+	margin-top: 15px;
+	float: left;
+}
+
+.speech-bubble {
+	width: 100%;
+	position: relative;
+	background: #606060;
+	border-radius: .4em;
+	color: #ECECEC;
+	padding: 10px;
+	margin: 11px 0px 30px 5px;
+	float: left;
+}
+
+.speech-bubble:after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 27px;
+	width: 0;
+	height: 0;
+	border: 11px solid transparent;
+	border-bottom-color: #606060;
+	border-top: 0;
+	margin-left: -11px;
+	margin-top: -11px;
+}
+
+.reviewsSection::after {
+	content: '';
+	display: table;
+	clear: both;
+}
+
+.deleteButton, .updateButton, .downvoteButton, .upvoteButton, .votes {
+  background: none;
+  border: none;
+  float: right;
+  font-size: 0.7em;
+  color: #cccccc
+}
+
+.deleteButton:hover, .updateButton:hover {
+  float: right;
+  font-size: 0.7em;
+  text-decoration: underline;
+}
+
+.downvoteButton {
+  clear: right;
+  font-size: 1.7em;
+}
+
+.upvoteButton {
+  font-size: 1.7em;
+}
+
+.votes {
+  position: relative;
+  font-size: 1.5em;
+  top: 12px;
+  left: 21px;
+  margin: 5px 0px 5px 0px;
+}
+
+
+.modal{
+  color: black;
+}
+
+</style>
+
+
+<body>
+<h1 class="display-4" style="text-align: center;">Review Product</h1>
+<div class="container product_info">
+  <div class="row">
+    <div class="col">
+      <h2 style="margin: 10px;">Corsair RGB RS</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <img class="col" src="/static/Images/Products/RAM/Corsair-RGB-RS.jpg">
+    </div>
+
+    {% if 'user_id' in session %}
+    {% if already_submitted %}
+    <div class="col alreadySubmitted">
+      <p>You've already submitted a review.</p>
+    </div>
+    {% else %}
+    <div class="col reviewForm">
+      <form method="POST" action="">
+        <div class="form-group">
+          <div style="clear: both;">
+            {{ form.rating.label }}
+          </div>
+          <fieldset class="rating">
+            {% for subfield in form.rating %}
+            {{ subfield }}
+            <label for="{{ subfield.id }}"><ion-icon name="star"></ion-icon></label>
+            {% endfor %}
+          </fieldset>
+        </div>
+        <div class="form-group" style="clear: both;">
+          {{ render_field(form.title, class="form-control") }}
+        </div>
+
+        <div class="form-group">
+          {{ render_field(form.review, class="form-control text") }}
+        </div>
+
+        <input type="submit" value="Submit" class="btn btn-primary"/>
+      </form>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="col reviewFormNotLoggedIn">
+      <p>You must be logged in to submit a review.</p>
+      <div id="login_button"><a href="{{ url_for('login') }}"><button class="button">Register/Login</button></a></div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="row">
+    <h2 style="margin: 10px;" class="col">Reviews</h2>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+      $(document).ready(function(){
+          $("select").change(function(){
+              $(this).find("option:selected").each(function(){
+                  var optionValue = $(this).attr("value");
+                  if(optionValue){
+                      $(".review").not("." + optionValue).hide();
+                      $("." + optionValue).show();
+                  } else{
+                      $(".review").hide();
+                  }
+              });
+          }).change();
+      });
+      </script>
+    <div>
+      <strong>Filter:</strong>
+      <select style="margin-top: 10px;">
+        <option value="review">All</option>
+        <option value="fivestar">5 Stars</option>
+        <option value="fourstar">4 Stars</option>
+        <option value="threestar">3 Stars</option>
+        <option value="twostar">2 Stars</option>
+        <option value="onestar">1 Star</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="reviewsSection">
+    {% if reviews_list == [] %}
+    <p style="font-size: 1.5em; text-align: center;">Be the first to leave a review!</p>
+    {% endif %}
+    {% for review in reviews_list %}
+    {% if review.get_rating()|int == 5 %}
+    <div class="fivestar review">
+      {% elif review.get_rating()|int == 4 %}
+      <div class="fourstar review">
+        {% elif review.get_rating()|int == 3 %}
+        <div class="threestar review">
+          {% elif review.get_rating()|int == 2 %}
+          <div class="twostar review">
+            {% elif review.get_rating()|int == 1 %}
+            <div class="onestar review">
+              {% endif %}
+              <div class="profpic">
+                <img src="{{review.get_user_object().avatar}}" alt="">
+              </div>
+              <h2 class="reviewerName">
+                {{ review.get_user_object().get_full_name() }}
+                {% for star in range(review.get_rating()|int) %}
+                <ion-icon name="star" style="color: #DAA520;"></ion-icon>
+                {% endfor %}
+                {% for emptystar in range(5-review.get_rating()|int) %}
+                <ion-icon name="star"></ion-icon>
+                {% endfor %}
+              </h2>
+              <div class="speech-bubble">
+<!--////////////////////////////////////////////////////////////////////////rating system/////////////////////////////////////////////////////////////////////-->
+                {% if 'user_id' in session %}
+                  {% if g.user.get_email() in review.upvoters %}
+                  <a href="{{ url_for('upvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-up-outline" class="upvoteButton" style="color: orange;"></ion-icon>
+                  </a>
+                  {% else %}
+                  <a href="{{ url_for('upvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-up-outline" class="upvoteButton"></ion-icon>
+                  </a>
+                  {% endif %}
+
+                  <div class="votes">{{ review.votes }}</div>
+
+                  {% if g.user.get_email() in review.downvoters %}
+                  <a href="{{ url_for('downvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-down-outline" class="downvoteButton" style="color: orange;"></ion-icon>
+                  </a>
+                  {% else %}
+                  <a href="{{ url_for('downvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-down-outline" class="downvoteButton"></ion-icon>
+                  </a>
+                  {% endif %}
+                {% else %}
+                  <a href="{{ url_for('upvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-up-outline" class="upvoteButton"></ion-icon>
+                  </a>
+
+                  <div class="votes">{{ review.votes }}</div>
+
+                  <a href="{{ url_for('downvote', product_id='CVRR64', review_id=review.get_review_id()) }}">
+                      <ion-icon name="caret-down-outline" class="downvoteButton"></ion-icon>
+                  </a>
+                {% endif %}
+<!--//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+                <h3>{{ review.get_title() }}</h3>
+                <p>{{ review.get_review() }}</p>
+                {% if 'user_id' in session %}
+                {% if g.user.get_email() == review.get_user_object().get_email() or session['user_id'] == 1 %}
+                <form action="{{ url_for('delete_review', product_id='CVRR64', id=review.get_review_id())}}" method="POST">
+                  <button type="button" class="deleteButton" data-toggle="modal" data-target="#myModal_{{review.get_review_id()}}">
+                    Delete
+                  </button>
+
+                  <!-- The Modal -->
+                  <div class="modal" id="myModal_{{review.get_review_id()}}">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                          <h4 class="modal-title">Delete Confirmation</h4>
+                          <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+
+                        <!-- Modal body -->
+                        <div class="modal-body">
+                          Are you sure you want to delete Review #{{review.get_review_id()}}?
+                        </div>
+
+                        <!-- Modal footer -->
+                        <div class="modal-footer">
+                          <input type="submit" value="Delete" class="btn btn-danger">
+                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </form>
+                {% endif %}
+
+                {% if g.user.get_email() == review.get_user_object().get_email() %}
+                <!-- Trigger the modal with a button -->
+                <button type="button" class="updateButton" data-toggle="modal" data-target="#updateModal_{{review.get_review_id()}}">Update</button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="updateModal_{{review.get_review_id()}}" role="dialog">
+                  <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h4 class="modal-title">Update your Review</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="updateForm" action="{{ url_for('update_review', product_id='CVRR64', id=review.get_review_id()) }}" method="post">
+                          <div class="form-group">
+                            <label for="rating" style="clear:both; width:100%;"><strong>Rating:</strong></label>
+                            <fieldset class="rating" id="rating">
+                              <input type="radio" id="star5" name="rating" value="5" required/><label for="star5" class="full"><ion-icon name="star"></ion-icon></label>
+                              <input type="radio" id="star4" name="rating" value="4"/><label for="star4" class="full"><ion-icon name="star"></ion-icon></label>
+                              <input type="radio" id="star3" name="rating" value="3"/><label for="star3" class="full"><ion-icon name="star"></ion-icon></label>
+                              <input type="radio" id="star2" name="rating" value="2"/><label for="star2" class="full"><ion-icon name="star"></ion-icon></label>
+                              <input type="radio" id="star1" name="rating" value="1"/><label for="star1" class="full"><ion-icon name="star"></ion-icon></label>
+                            </fieldset>
+                          </div>
+                          <div class="form-group">
+                            <label for="title" style="clear:both; width:100%;"><strong>Title:</strong></label>
+                            <input type="text" name="title" id="title" value="{{ review.get_title() }}" style="width: 75%;">
+                          </div>
+                          <div class="form-group">
+                            <label for="review" style="clear:both; width:100%;"><strong>Review:</strong></label>
+                            <textarea name="review" id="review" rows="5" cols="55" required>{{ review.get_review() }}</textarea>
+                          </div>
+                          <input type="submit" value="Update Review" class="btn btn-primary">
+                        </form>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {% endif %}
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+
+
+        <script src="https://unpkg.com/ionicons@5.2.3/dist/ionicons.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+{% endblock %}

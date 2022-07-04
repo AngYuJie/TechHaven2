@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Tech Haven - Home{% endblock %}
+
+{% block content %}
+<style>
+.img-container {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    background-color: white;
+
+}
+
+.portfolio-hover {
+    height: 300px;
+}
+</style>
+<header class="masthead" >
+
+
+     	<section class="ftco-section">
+			<div class="container">
+				<div class="row">
+                        {% if message %}
+<!--                                        <h1 class="message" style="color:red;"><strong>Message:</strong> {{ message }}</h1>-->
+                                        <div class="alert alert-success alert-dismissible">
+                                       <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            {{ message }}
+                                           </div>
+                                            {% endif %}
+					<div class="col-md-12">
+
+
+						<div class="slider-hero">
+							<div class="featured-carousel owl-carousel">
+								<div class="item">
+									<div class="work">
+
+										<div class="img d-flex align-items-center justify-content-center" style="background-image: url(/static/Images/Banners/42069.png);">
+											<div class="text text-center">
+<!--												<h2>Discover New Places</h2>-->
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="item">
+									<div class="work">
+										<div class="img d-flex align-items-center justify-content-center" style="background-image: url(/static/Images/Banners/Poster1.jpg);">
+											<div class="text text-center">
+<!--												<h2>Dream Destination</h2>-->
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="item">
+									<div class="work">
+										<div class="img d-flex align-items-center justify-content-center" style="background-image: url(/static/Images/Banners/lastimage.png);">
+											<div class="text text-center">
+
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="my-5 text-center">
+			          <ul class="thumbnail">
+			            <li class="active img"><a href="#"><img src="/static/Images/Banners/42069.png" alt="Image" class="img-fluid"></a></li>
+			            <li><a href="#"><img src="/static/Images/Banners/Poster1.jpg" alt="Image" class="img-fluid"></a></li>
+			            <li><a href="#"><img src="/static/Images/Banners/lastimage.png" alt="Image" class="img-fluid"></a></li>
+			          </ul>
+			        </div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+    </header>
+
+    <section class="bg-light" id="portfolio">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="text-uppercase section-heading">Products</h2>
+                    <h3 class="text-muted section-subheading">Our Selection of goods!</h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#CPU-PortfolioModal" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div>
+                            <img class="img-fluid" src="/static/Images/LandingSiteImage/CPU.jpg" style="height:250px">
+                        </a>
+                    </div>
+
+
+                    <div class="portfolio-caption">
+                        <h4>CPU</h4>
+                        <p class="text-muted">Central Processing Unit</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#portfolioModal2" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div>
+                            <img class="img-fluid" src="/static/Images/LandingSiteImage/GPU.jpg">
+                        </a>
+                    </div>
+                    <div class="portfolio-caption">
+                        <h4>GPU</h4>
+                        <p class="text-muted">Graphics Card</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#portfolioModal3" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div><img class="img-fluid" src="/static/Images/LandingSiteImage/MOBA.jpg" style="height:250px">
+                        </a>
+                    </div>
+                    <div class="portfolio-caption">
+                        <h4>MOBA</h4>
+                        <p class="text-muted">Motherboard</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#portfolioModal4" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div><img class="img-fluid" src="/static/Images/LandingSiteImage/PSu.jpg">
+                        </a>
+                    </div>
+                    <div class="portfolio-caption">
+                        <h4>PSU</h4>
+                        <p class="text-muted">Power Supply Unit </p>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#portfolioModal5" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div><img class="img-fluid" src="/static/Images/LandingSiteImage/Ram.jpg">
+                        </a>
+                    </div>
+                    <div class="portfolio-caption">
+                        <h4>RAM</h4>
+                        <p class="text-muted">Random Access Memory</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-md-4 portfolio-item">
+                    <div class="img-container">
+                        <a class="portfolio-link" href="#portfolioModal6" data-bs-toggle="modal">
+                            <div class="portfolio-hover">
+                                <div class="portfolio-hover-content"><i class="fa fa-plus fa-3x"></i></div>
+                            </div><img class="img-fluid" src="/static/Images/LandingSiteImage/Storage.jpg">
+                        </a>
+                    </div>
+                    <div class="portfolio-caption">
+                        <h4>Storage</h4>
+                        <p class="text-muted">non-volatile memory</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="CPU-PortfolioModal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Central Processing Unit </h2>
+                                <p class="text-muted item-intro">CPU</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/CPU.jpg">
+                                <p>The CPU is the brain of the computer.</p>
+
+                                <a href="/Products#CPU"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;view CPU</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="portfolioModal2">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Graphical Processing unit</h2>
+                                <p class="text-muted item-intro">GPU</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/GPU.jpg">
+                                <p>The Graphical Processing unit is just like the CPU, it is mainly used to process graphical items</p>
+
+                                <a href="/Products#GPU"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;View GPU</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="portfolioModal3">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Motherboard</h2>
+                                <p class="text-muted item-intro">MOBA</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/MOBA.jpg">
+                                <p>The Motherboard is the body of the computer all the items is attached to this unit.</p>
+
+                                <a href="/Products#MOBA"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;view MOBA</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="portfolioModal4">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Power Supply Unit</h2>
+                                <p class="text-muted item-intro">PSU</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/PSU.jpg">
+                                <p>Power supply is the unit needed to supply power to your computer</p>
+
+                                <a href="/Products#PSU"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;View PSU</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="portfolioModal5">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Random Access Memory </h2>
+                                <p class="text-muted item-intro">RAM</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/Ram.jpg">
+                                <p>The ramdom access memory is where all the processing application reside, it is meant to store data temporary.</p>
+
+                                <a href="/Products#RAM"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;View RAM</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade text-center portfolio-modal" role="dialog" tabindex="-1" id="portfolioModal6">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto">
+                            <div class="modal-body">
+                                <h2 class="text-uppercase">Non-Volatile Memory</h2>
+                                <p class="text-muted item-intro">Storage</p><img class="img-fluid d-block mx-auto" src="/static/Images/LandingSiteImage/Storage.jpg">
+                                <p>The non-volatile is where your computer save the files, the items is kept even the pc is power off unlike the RAM.</p>
+
+                                <a href="/Products#Storage"><button class="btn btn-primary" type="button" data-bs-dismiss="modal"><span>&nbsp;View Storage</span></button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

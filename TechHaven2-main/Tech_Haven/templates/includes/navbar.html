@@ -1,0 +1,54 @@
+<nav id="mainNav" class="navbar navbar-dark navbar-expand-lg fixed-top bg-dark">
+    <div class="container" style='padding-top: 5px; padding-bottom: 5px'>
+        <img src="/static/Images/Logos/pc.png" style="width: 70px;"/>
+        <span style="text-align: center; padding-left: 10px; color: #fed136; font-family: Kaushan Script, Helvetica Neue,Helvetica,Arial,cursive"><a style="text-decoration: none;  font-size: 28px" href="/">Tech Haven</a><br />
+        <span style="font-size: 10px";>WE SELL, YOU BUY!</span></span>
+
+        <!--  Navbar for  -->
+        <button class="navbar-toggler navbar-toggler-right" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" type="button" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><i class="fa fa-bars"></i></button>
+                <div id="navbarResponsive" class="collapse navbar-collapse">
+                    <ul class="navbar-nav ms-auto text-uppercase">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        {% if 'user_id' in session %}
+                            {% if g.account['Id'] == 1 %}
+                                <li class="nav-item"><a class="nav-link" href="/viewProducts">View Products</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/retrieveFeedback">View Contact us</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/analysis">Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Report">Report Generation</a></li>
+
+                            {% else %}
+                                <li class="nav-item"><a class="nav-link" href="/Products">Products</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/ContactUs">Contact us</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/ShoppingCart">Shopping Cart</a></li>
+                            {% endif %}
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="/Products">Products</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/ContactUs">Contact us</a></li>
+                        {% endif %}
+
+
+
+
+                        {% if 'user_id' in session %}
+                            <div class="dropdown">
+                                <li class="drop-down"><li class="nav-item" ><a href="#" class="nav-link">{{ g.account2[0] + " " + g.account2[1]}}</a></li>
+                                    <div class="dropdown-content">
+                                         {% if g.account['Id'] %}
+                                             <a href="/updateProfile/{{g.account['Id']}}">Update Profile</a>
+                                         {% else %}
+                                            <a href="/updateProfile/{{g.account['Id']}}">Update Profile</a>
+                                         {% endif %}
+                                             <a href="/profile">Profile</a>
+<!--                                             <a href="/ShoppingCart">Your Cart</a>-->
+                                             <a href="{{ url_for('logout') }}">Logout</a>
+                                    </div>
+                                {% else %}
+                                 <li class="nav-item"><a href="/login" class="nav-link">Login</a></li>
+                            </div>
+                        {% endif %}
+                    </ul>
+                </div>
+    </div>
+</nav>

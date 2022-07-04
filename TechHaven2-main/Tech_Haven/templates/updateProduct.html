@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Update Product - {{ item_information.get_name() }}{% endblock %}
+
+{% block content %}
+<div style="margin: 150px auto; text-align: center; width: 1000px">
+    <div id="img-container">
+        <img src={{item_information.get_img()}} alt="{{item_information.get_img()}}" style="max-width: 500px">
+    </div>
+    <h1>{{ item_information.get_name() }}</h1>
+    <h3>{{ item_information.get_description() }}</h3>
+    <h4>Price: ${{ '%0.2f'| format(item_information.get_price()|float) }}</h4>
+    <br>
+    <form action="{{ url_for('update_product', product_id=product_id) }}" method="POST">
+        <h5>
+            <label>Quantity: </label>
+            <input type="hidden" name="product_id" value={{selected_item.get_product_id()}}>
+            <input type="number" id="quantity" name="quantity" min="1" value={{selected_item.get_quantity()}} style="border-width:1.5px">
+        </h5>
+        <br>
+        <button type="button" class="btn btn-warning" onclick="location.href='/ShoppingCart'">Back to Cart</button>
+        <button type="submit" name='Submit' class="btn btn-warning" onclick="alert('Number of {{ item_information.get_name() }} have been changed to ' + document.getElementsByName('quantity')[0].value)">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

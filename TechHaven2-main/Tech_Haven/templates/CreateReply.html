@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Reply Inquiries{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelperContactUs.html" import render_field %}
+
+<form method="post" >
+  <div class="modal-dialog modal-lg" role="document" style="padding-top:100px">
+      <div class="modal-content">
+          <div class="container">
+              <div class="row">
+                  <div class="col-lg-8 mx-auto">
+                      <div class="modal-body">
+                        <h2 class="text-uppercase">Reply Feedback</h2>
+                          <div style="text-align:left; line-spacing:5px">
+                              <label>First Name: {{user_info.get_first_name()}}</label><br>
+                              <label>Last Name: {{user_info.get_last_name()}}</label><br>
+                              <label>Email: {{user_info.get_email()}}</label><br>
+                              <label>Subject: {{user_info.get_subject()}}</label><br>
+                              <label>Inquiry: {{user_info.get_inquiry()}}</label><br>
+                              Reply: {{ render_field(form.reply, class="form-control")}}
+                          </div><br>
+                            <a href="/retrieveFeedback"><button type="button" class="btn btn-danger">back</button></a>
+                            <input type="submit" value="Send" class="btn btn-primary" />
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</form>
+{% endblock %}

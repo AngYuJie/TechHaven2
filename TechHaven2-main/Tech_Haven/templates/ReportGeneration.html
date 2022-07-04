@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Analysis{% endblock %}
+
+
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<div style="margin-top:150px; text-align:center; padding: 50px">
+    <h1>Dashboard</h1>
+
+</div>
+
+
+
+<div class="retrievedTable">
+        <TABLE BORDER="5"  CELLPADDING="10" CELLSPACING="5" style="margin: 50px auto 0px auto; width: 80%;">
+        <TR align="center">
+          <TH COLSPAN="5">
+              <H4 style="text-align:left"><BR>Failed Logins</H4>
+          </TH>
+       </TR>
+        <TR align="Center">
+          <TH>Logs_Id</TH>
+          <TH>First Name</TH>
+          <TH>Last Name</TH>
+          <TH>Email</TH>
+          <TH>Mobile Number </TH>
+          <TH>Failed Login Date </TH>
+          <TH>Failed Login Time </TH>
+          <TH>Account Type </TH>
+            <TH>Failed Attempts </TH>
+          <TH>Account Status </TH>
+        </TR>
+        {% for eachitems in logs %}
+          <TR align="Center">
+
+              <TD>{{eachitems['LogID']}}</TD>
+              <TD>{{eachitems['FirstName']}}</TD>
+              <TD>{{eachitems['LastName']}}</TD>
+              <TD>{{eachitems['Email']}}</TD>
+              <TD>{{eachitems['MobileNumber']}}</TD>
+              <TD>{{eachitems['FailedLoginDate']}}</TD>
+              <TD>{{eachitems['FailedLoginTime']}}</TD>
+              <TD>{{eachitems['AccountType']}}</TD>
+              <TD>{{eachitems['NoOfFailedAttemps']}}</TD>
+              <TD>{{eachitems['AccountStatus']}}</TD>
+
+
+          </TR>
+ {% endfor %}
+        </TABLE>
+</div>
+
+
+{% endblock %}
+

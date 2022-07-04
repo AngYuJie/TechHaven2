@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+#bef::before {
+    content: '';
+    display: table;
+    height: 70px;
+}
+
+</style>
+<head>
+    <meta charset="UTF-8">
+    <!--<title>Title</title> -->
+    <title>{% block title %}{% endblock %}</title>
+
+    <!--LandingSite-->
+    <link rel="stylesheet" href="/static/css/LandingSite Css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kaushan+Script">
+    <link rel="stylesheet" href="/static/css/LandingSite Css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/LandingSite Css/Home.css">
+
+    <!--Carousel-->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800,900" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/Carousel CSS/owl.carousel.min.css">
+    <link rel="stylesheet" href="/static/css/Carousel CSS/owl.theme.default.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/4.5.6/css/ionicons.min.css">
+    <link rel="stylesheet" href="/static/css/Carousel CSS/animate.css">
+    <link rel="stylesheet" href="/static/css/Carousel CSS/style.css">
+
+
+
+    <!--Login Form-->
+     <link rel="stylesheet" href="/static/css/Login Form/animate.css">
+    <link rel="stylesheet" href="/static/css/Login Form/bootstrap.min.css">
+     <link rel="stylesheet" href="/static/css/Login Form/hamburgers.min.css">
+
+     <link rel="stylesheet" href="/static/css/Login Form/select2.min.css">
+    <link rel="stylesheet" href="/static/Fonts/Login Form/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/Login Form/main.css">
+    <link rel="stylesheet" href="/static/css/Login Form/util.css">
+    <link rel="stylesheet" href="/static/Fonts/Login Form/font-awesome.css">
+
+
+
+    <!--Register form -->
+    <link rel="stylesheet" href="/static/css/RegisterCss/style.css">
+    <link rel="stylesheet" href="/static/css/Register/Css/material-design-iconic-font.css">
+    <link rel="stylesheet" href="/static/css/RegisterCss/material-design-iconic-font.min.css">
+    <link rel="stylesheet" href="/static/css/RegisterCss/montserrat-font.css">
+
+
+
+
+    <!---- Update Form-->
+      <link rel="stylesheet" href="/static/css/Update/updateForm.css">
+
+</head>
+
+<body>
+
+    {% block navbar %}
+        {% include 'includes/navbar.html' %}
+    {% endblock %}
+
+
+    {% block content %}
+    {% endblock %}
+
+
+    {% block footer %}
+        {% include 'includes/footer.html' %}
+    {% endblock %}
+
+    <a href="#" class="back-to-top" style="display: inline;"><i class="ri-arrow-up-line"></i></a>
+
+    {% block scripts %}
+
+
+    <!--Landing Site JS-->
+      <script src="/static/Js/LandingSite Js/bootstrap.min.js"></script>
+      <script src="/static/Js/LandingSite Js/agency.js"></script>
+
+    <!--Carousel Js-->
+    <script src="/static/Js/Carousel Js/jquery.min.js"></script>
+    <script src="/static/Js/Carousel Js/popper.js"></script>
+    <script src="/static/Js/Carousel Js/bootstrap.min.js"></script>
+    <script src="/static/Js/Carousel Js/owl.carousel.min.js"></script>
+    <script src="/static/Js/Carousel Js/main.js"></script>
+
+    <!--Login Form-->
+    <script src="/static/Js/Login Form/jquery-3.2.1.min.js"></script>
+    <script src="/static/Js/Login Form/popper.js"></script>
+     <script src="/static/Js/Carousel Js/bootstrap.min.js"></script>
+    <script src="/static/Js/Carousel Js/select2.min.js"></script>
+
+    <script src="/static/Js/Carousel Js/select2.min.js"></script>
+    <script src="/static/Js/Carousel Js/tilt.jquery.min.js"></script>
+    <script src="/static/Js/Carousel Js/main.js"></script>
+    <script >
+		$('.js-tilt').tilt({
+			scale: 1.1
+		})
+	</script>
+
+
+
+    <script src="/static/Js/Carousel Js/main.js"></script>
+
+    {% endblock %}
+
+
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Review Product{% endblock %}
+
+{% block content %}
+
+<style>
+
+
+.PFP{
+
+    height: 200px;
+    width: 300px;
+}
+
+  .form {border: 5px solid #f1f1f1; width: 80%; height: 100%; display: in-block; padding: 20px 40px; margin: auto;}
+  .form-group {width: 100%;}
+  .container {padding: 20px 60px;}
+  .btn-holder{text-align: center;}
+  .form-right {color:white;}
+
+
+</style>
+
+
+
+<body class="form-v10">
+
+<div class="page-content">
+  <div class="form-v10-content">
+  {% if 'profile_updated' in session %}
+<div class="alert alert-success alert-dismissible">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  {{ session.pop('profile_updated', None) }}
+</div>
+{% endif %}
+       {% if message %}
+<!--                       <h1 class="message" style="color:red;"><strong>Message:</strong> {{ message }}</h1>-->
+                                        <div class="alert alert-success alert-dismissible">
+                                       <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                            {{ message }}
+                                           </div>
+                                            {% endif %}
+<div class="form-detail">
+
+
+
+    <div class="form-left">
+      <h2>General Infomation</h2>
+
+
+
+    <div class="form-group">
+
+    <div class="form-row form-row-1">
+   <div class="profpic">
+ <img src="static/ProfilePhotos/{{data2['ProfilePhoto']}}">
+     </div>
+    </div>
+
+
+     <div class="form-row form-row-2">
+        <strong class="label">Full Name: </strong>{{data[0]}} {{data[1]}}
+     </div>
+
+
+
+     <div class="form-row form-row-3">
+         <strong class="label">First Name: </strong>{{data[0]}}
+     </div>
+
+
+
+
+
+     <div class="form-row form-row-4">
+         <strong class="label">Last Name: </strong>{{data[1]}}
+     </div>
+
+
+    </div>
+
+
+
+
+
+
+
+
+
+  <div class="form-right">
+    <h2>Contact Details</h2>
+
+      <div class="form-group">
+      <div class="form-row form-row-1">
+         <strong class="label"> Street: </strong>{{data[2]}}
+      </div>
+      </div>
+
+      <div class="form-group">
+      <div class="form-row form-row-3">
+         <strong class="label"> Postal Code: </strong>{{data[3]}}
+      </div>
+      </div>
+
+
+      <div class="form-group">
+      <div class="form-row form-row-5">
+        <strong class="label"> Unit Number: </strong>{{data[4]}}
+      </div>
+      </div>
+
+
+      <div class="form-group">
+      <div class="form-row form-row-6">
+      <strong class="label"> Mobile Number: </strong>{{data[5]}}
+      </div>
+      </div>
+
+      <div class="form-group">
+      <div class="form-row form-row-7">
+          <strong class="label">Email Address: </strong>{{data[6]}}
+      </div>
+      </div>
+
+
+  <div class="form-row-last">
+      <a href="{{url_for('update_profile', id=data2['Id'])}}"><button class="register" class="btn btn-primary" style="width: 40%">Update Profile</button></a>
+
+    </div>
+
+
+
+
+
+
+<!--    <div class="form-row-last">-->
+<!--{% if 'profile_updated' in session %}-->
+<!--    <div class="alert alert-success alert-dismissible">-->
+<!--      <button type="button" class="close" data-dismiss="alert">&times;</button>-->
+<!--      {{ session.pop('profile_updated', None) }}-->
+<!--    </div>-->
+<!--    {% endif %}-->
+
+<!--    </div>-->
+
+  </div>
+</div>
+  </div>
+  </div>
+</div>
+</body>
+
+{% endblock %}
