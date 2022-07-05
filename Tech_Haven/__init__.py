@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import TempTest
+from Tech_Haven.TempTest import *
 import Product
 import Review
 import User
@@ -526,7 +526,7 @@ def profile():
         todaydate = date.today()
         delta = todaydate - CurrentPasswordAge
         print(delta.days)
-        if int(delta.days) > 30:
+        if int(delta.days) > 29:
             message = "Your password age is more than 30 days!"
         else:
             message = ''
@@ -534,7 +534,7 @@ def profile():
 
 
     #print(userdata)
-    return render_template('profile.html', data=decodedList, data2=userdata,message=message)
+    return render_template('profile.html', data=decodedList, data2=userdata, message=message)
 
 @app.route('/logout')
 def logout():
