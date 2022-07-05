@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
+import TempTest
 import Product
 import Review
 import User
@@ -20,7 +20,6 @@ from flask_bcrypt import Bcrypt
 from datetime import date, datetime, timedelta
 import base64
 bcrypt = Bcrypt()
-import TempTest
 
 
 mail = Mail()
