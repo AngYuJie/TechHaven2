@@ -8,7 +8,7 @@
   .form-group {width: 100%;}
   .container {padding: 20px 60px;}
   .btn-holder{text-align: center;}
-  .form-right {color:white;}
+  .form-right {color:black;}
 
   ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: grey !important;
@@ -54,9 +54,6 @@
 
 
 
-
-
-
       <div class="form-row form-row-2">
           {{ render_field(form.last_name, class="form-control") }}
           <span id="span_last_name">&nbsp;</span>
@@ -77,18 +74,20 @@
         </div>
       </div>
 
-        <div class="form-group">
-          <div class="form-row">
-          <div>Choose your security question</div>
-            {% for subfield in range(form.securityQn.choices|length) %}
-            <input type="radio", id = {{subfield}} name = "secQn">{{ form.securityQn.choices[subfield] }}
-            <br>
-            {% endfor %}
+      <div class="form-group">
+        <div class="form-row">
+        <div>Choose your security question</div>
+        {{form.securityQn}}
+  
         <span id="span_confirm">&nbsp;</span>
         </div>
       </div>
-      
-      
+
+      <div class="form-row">
+        {{ render_field(form.securityQnAns, class="form-control") }}
+        <span id="span_securityQnAns">&nbsp;</span>
+    </div>
+
     </div>
 
 

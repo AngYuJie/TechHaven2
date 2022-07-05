@@ -14,12 +14,13 @@ class RegisterForm(Form):
     email = StringField('Email', [validators.DataRequired(), validators.Email("Invalid Email")])
     password = PasswordField('Password', [validators.DataRequired(),validators.EqualTo('confirm', message='Passwords do not match')])
     confirm = PasswordField('Confirm Password')
+    securityQn = RadioField('Choose your security question', choices=["What is your first car?", "What is one of your siblings names?", 'What is a brand of footwear that you own?'], validators=[validators.DataRequired()])
+    securityQnAns = StringField('What is the answer to the selected security question?', [validators.DataRequired()])
     street = StringField('Street', [validators.DataRequired()])
     postal_code = StringField('Postal Code', [validators.DataRequired()], render_kw={"placeholder": "000000"})
     unit_number = StringField('Unit Number', [validators.DataRequired()], render_kw={"placeholder": "#00-00"})
     mobile_number = StringField('Mobile Number', [validators.DataRequired()])
     recaptcha = RecaptchaField()
-
 
 class ContactUsForm(Form):
     first_name = StringField('First Name', [validators.Length(min=1, max=150), validators.DataRequired("Please enter your first name")], render_kw={"placeholder": "First Name"})
@@ -56,4 +57,8 @@ class ForgetPasswordForm(Form):
 
 class PasswordResetForm(Form):
     current_password = PasswordField('Current Password',[validators.DataRequired(), validators.Length(min=4, max=80)])
+    submit = SubmitField(label='Login', validators=[DataRequired()])
+
+class securityQnsForm(Form):
+    answer = StringField('Answer', [validators.DataRequired("Please enter security question answer")])
     submit = SubmitField(label='Login', validators=[DataRequired()])
