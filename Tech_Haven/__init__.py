@@ -6,21 +6,20 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
+from TempTest import *
 import Product
 import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, CreateReplyForm, PasswordResetForm, LoginForm, securityQnsForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 from flask_bcrypt import Bcrypt
 from datetime import date, datetime, timedelta
-
+import base64
 bcrypt = Bcrypt()
-
 
 
 mail = Mail()
@@ -95,6 +94,10 @@ def before_request():
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
             cursor.execute('SELECT * FROM accounts WHERE Id = %s', (session['user_id'],))
             g.account = cursor.fetchone()
+            test = [g.account['FirstName'],g.account['LastName']]
+            g.account2 = decoding(test)
+
+
 
 
 @app.route('/')
@@ -105,20 +108,24 @@ def home():
 def about():
     return render_template('about.html')
 
+
 @app.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm(request.form)
     error = ''
     if request.method == 'POST' and form.validate():
         session.clear()
-
+        list = []
         Email = form.email.data
-
+        list.append(Email)
+        encodedEmail = encoding(list)
         Password = form.password.data
 
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (Email,))
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
             g.account = cursor.fetchone()
+
+#oof
         if g.account:
             user_hashPassword = g.account['Password']
             NoOfFailedAttemps = g.account['NoOfFailedAttemps']
@@ -127,11 +134,12 @@ def login():
             mobileNumber = g.account['MobileNumber']
             AccountStatus = g.account['AccountStatus']
             AccountType = g.account['AccountType']
+            NextLoginTime = g.account['NextLoginTime']
 
             if int(NoOfFailedAttemps) > 10 or AccountStatus=='Suspended':
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, AccountStatus =%s  WHERE Email = %s'
-                    val = (NoOfFailedAttemps,'Suspended',Email)
+                    val = (NoOfFailedAttemps,'Suspended',encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
                     error = 'Your Account Has been temporarly suspended.'
@@ -146,19 +154,60 @@ def login():
                         body=message1
                     )
 
+            if NextLoginTime != None:
+                currentDatetime = datetime.now()
+                calculation = currentDatetime - NextLoginTime
+                date_diff = (calculation.total_seconds()/60)
+                print(date_diff)
+                if (int(NoOfFailedAttemps) == 5 or (int(NoOfFailedAttemps) > 5 and date_diff < 30)):
+                    todaydate = date.today()
+                    failedDate = todaydate.strftime("%Y-%D-%M")
+                    todayTime = datetime.today()
+                    failedTime = todayTime.strftime("%H:%M:%S")
+                    failedDateTime = datetime.now()
+                    test = int(NoOfFailedAttemps)+1
+                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                        sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, NextLoginTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                        val = (test ,failedDate,failedDateTime,failedTime,encodedEmail[0])
+                        cursor.execute(sql,val)
+                        mysql.connection.commit()
+
+                    message1 = "Hi you have failed too many times.\n\n Best regards,\n Tech Haven Team."
+                    error = 'oyvey'
+                    mail.send_message(
+                        sender='tech.haven.we.sell.you.buy@gmail.com',
+                        recipients=[Email],
+                        subject="password",
+                        body=message1
+                    )
+                    return render_template('login.html',form=form, error=error)
 
 
-            if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus!='Suspended':
+
+            if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Verified-Customer':
                 session['user_id'] = g.account['Id']
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = ("0",None,None,Email)
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
+                    val = ("0",None,None,None,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
-                return redirect(url_for('home'))
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+                    account = cursor.fetchone()
+                    CurrentPasswordAge = account['PasswordAge']
+                    todaydate = date.today()
+                    delta = todaydate - CurrentPasswordAge
+                    print(delta.days)
+                    if int(delta.days) > 30:
+                        message = "password age is more than 30 days!"
+                    else:
+                        message = 'test'
+                flash(message)
+                return redirect(url_for('home',message=message))
+            elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Non-Verified-Customer':
+                return redirect(url_for('Verify'))
 
-                
 
 
             else:
@@ -166,21 +215,30 @@ def login():
                 failedDate = todaydate.strftime("%Y-%D-%M")
                 todayTime = datetime.today()
                 failedTime = todayTime.strftime("%H:%M:%S")
+                failedDateTime = datetime.now()
                 test = int(NoOfFailedAttemps)+1
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-                    val = (test,failedDate,failedTime,Email)
+                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, NextLoginTime= %s, FailedLoginTime = %s  WHERE Email = %s'
+                    val = (test,failedDate,failedDateTime,failedTime,encodedEmail[0])
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 
-
+                EncodedItems = [firstName,lastName,mobileNumber]
+                decodeditems = decoding(EncodedItems)
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(firstName, lastName, Email,mobileNumber,failedDate,failedTime,AccountType,test,AccountStatus))
+                    cursor.execute('INSERT INTO Logs VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s)',(decodeditems[0], decodeditems[1], Email, decodeditems[2],failedDate,failedTime,AccountType,test,AccountStatus))
                     mysql.connection.commit()
                     error = 'Invalid Credentials. Please try again.'
 
         else:
+            todaydate = date.today()
+            failedDate = todaydate.strftime("%Y-%D-%M")
+            todayTime = datetime.today()
+            failedTime = todayTime.strftime("%H:%M:%S")
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute('INSERT INTO unregisteredlogs VALUES (NULL, %s, %s, %s)',(Email,failedDate,failedTime))
+                    mysql.connection.commit()
             message1 = "Hi you have not made an account with us yet.\n\n Best regards,\n Tech Haven Team."
             error = 'Please check email and follow the instruction.'
             mail.send_message(
@@ -192,158 +250,299 @@ def login():
 
     return render_template('login.html',form=form, error=error)
 
-@app.route('/securityQns')
-def securityQns():
-    form = securityQnsForm(request.form)
-    error = ''
-    return render_template('securityQns.html', form = form)
-    session['user_id'] = g.account['Id']
-    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-        sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s  WHERE Email = %s'
-        val = ("0",None,None,Email)
-        cursor.execute(sql,val)
-        mysql.connection.commit()
 
-# Register Page Yu Jie
+
 @app.route('/register', methods=["GET", "POST"])
 def register():
-    print("yes4")
     form = RegisterForm(request.form)
     todaydate = date.today()
     current_date = todaydate.strftime("%Y-%D-%M")
-    print(request.method)
-    print(form.validate())
-    print(form.data)
+    print("test5")
     if request.method == 'POST' and form.validate():
-            FirstName = form.first_name.data
-            LastName = form.last_name.data
-            Password = form.password.data
-            Email = form.email.data
-            Street = form.street.data
-            PostalCode = form.postal_code.data
-            UnitNumber = form.unit_number.data
-            MobileNumber = form.mobile_number.data
-            hashpassword = bcrypt.generate_password_hash(Password)
-            securityQn = form.securityQn.data
-            securityQnAns = form.securityQnAns.data
-            print("yes3")
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                print("yes2")
-                cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
-                account = cursor.fetchone()
+        print("test4")
+        FirstName = form.first_name.data
+        LastName = form.last_name.data
+        Password = form.password.data
+        Email = form.email.data
+        Street = form.street.data
+        PostalCode = form.postal_code.data
+        UnitNumber = form.unit_number.data
+        MobileNumber = form.mobile_number.data
+        securityQn = form.securityQn.data
+        securityQnAns = form.securityQnAns.data
+        hashpassword = bcrypt.generate_password_hash(Password)
+        list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber,securityQnAns]
+        encoder = encoding(list)
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            print("test3")
+            cursor.execute('SELECT * FROM accounts where Email = %s', (encoder[2],))
+            account = cursor.fetchone()
 
-                if account:
-                    email_error = 'Email Has been Registered'
-                    return render_template('register.html', form=form, email_error=email_error)
+            if account:
+                print("test wtf is going on")
+                email_error = 'Email Has been Registered'
+                return render_template('register.html', form=form, email_error=email_error)
 
-                else:
-                    print("yes1")
-                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s)',(FirstName, LastName, hashpassword, Email, Street,PostalCode,UnitNumber,MobileNumber,current_date,"Customer",0,'Active',securityQn,securityQnAns))
-                        mysql.connection.commit()
-                        session['user_created'] = "You"
-                        print("registration went thru")
+            else:
+                print("test1")
+                currentTime = datetime.now()
+                random_str1 = random.randint(1000000,10000000)
+                random_str = str(random_str1)
+                OtpDateTime = currentTime+timedelta(minutes=30)
 
-                    return redirect(url_for('login'))
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    print("test2")
+                    cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s,%s)',
+                                    (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],securityQn,encoder[7],current_date,"Non-Verified-Customer",0,'Active','default.jpg',random_str,OtpDateTime))
+                    mysql.connection.commit()
+                    confirmation = "We have sent you the OTP an OTP to your email account."
+                    message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
+                    mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
+                    subject="OTP Verification",
+                    body=message)
+                return redirect(url_for('Verify'))
 
 
     else:
         return render_template('register.html', form=form)
 
 
-#Update User.Yu Jie
+
+@app.route('/ReGenerateOTP', methods=['GET', 'POST'])
+def ReGenerateOTP():
+    form = OTPGform(request.form)
+    if request.method == 'POST' and form.validate():
+        Email = form.email.data
+        encoder = encoding([Email])
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encoder[0],))
+            g.account = cursor.fetchone()
+        if g.account:
+            todaydate = datetime.today()
+            otpAge = todaydate+timedelta(minutes=40)
+            random_str1 = random.randint(1000000,10000000)
+            random_str = str(random_str1)
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                sql = 'UPDATE accounts SET OTP = %s, OTPAge= %s  WHERE Email = %s'
+                val = (random_str,otpAge,encoder[0])
+                cursor.execute(sql,val)
+                mysql.connection.commit()
+                confirmation = "We have sent you the OTP an OTP to your email account."
+                message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
+                mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
+                        subject="OTP Verification",
+                        body=message)
+            return redirect(url_for('Verify'))
+
+
+
+        else:
+                message = 'Invalid Credentials'
+
+    return render_template('ReGenerateOTP.html',form=form)
+
+
+@app.route('/Verify', methods=['GET', 'POST'])
+def Verify():
+    form = OTPForm(request.form)
+    todaydate = datetime.today()
+    if request.method == 'POST' and form.validate():
+        Email = form.email.data
+        inputOTP = form.OTP.data
+        encodedEmail = encoding([Email])
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+            g.account = cursor.fetchone()
+        if g.account:
+            OTP = g.account['OTP']
+            OTPAge = g.account['OTPAge']
+            if inputOTP == OTP:
+                test = 'Verified-Customer'
+                print('YEs')
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    sql = 'UPDATE accounts SET AccountType= %s,  OTP= %s, OTPAge= %s  WHERE Email = %s'
+                    val = (test,None,None,encodedEmail[0])
+                    cursor.execute(sql,val)
+                    mysql.connection.commit()
+                session['user_created'] = "You"
+                return redirect(url_for('login'))
+
+            else:
+                message = 'Invalid otp / otp timeout pls re generate otp.'
+
+    return render_template('Verify.html',form=form)
+
+
+
+
+
 @app.route('/updateProfile/<int:id>/', methods=['GET', 'POST'])
 def update_profile(id):
     #Set Update_user_form to inheriet RegistrationForm(Form) Class
     update_user_form = RegisterForm(request.form)
-
     #Validation if request method is post and
     if request.method == 'POST' and update_user_form.validate():
+       if "avatar" in request.files:
+            avatar = request.files['avatar']
+            if avatar.filename == '':
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    cursor.execute("select ProfilePhoto from accounts where Id = %s" % id)
+                    filename = cursor.fetchone()["ProfilePhoto"]
+                    #print(filename)
 
-        # A empty dictionary
-        users = {}
+            elif avatar and allowed_file(avatar.filename):
+                filename = secure_filename(avatar.filename)
 
-        #opens the database of register.db, method of write
-        db = shelve.open('register.db', 'w')
+                ver = 0
+                while os.path.isfile('/static/ProfilePhotos/' + filename):  # if theres existing file
+                    ver += 1
+                    for filetype in ALLOWED_EXTENSIONS:
+                        if filetype in filename.split('.'):
+                            filename = avatar.filename.split('.')[0] + str(ver) + '.' + avatar.filename.split('.')[-1]
 
-        #store the database with Users key to the users dictionary.
-        users = db['Users']
+                filepath = '/static/ProfilePhotos/' + filename
+
+                avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+            elif not allowed_file(avatar.filename):
+                fileTypeError = 'Invalid file type. (Only accepts .png, .jpg, .jpeg, and .gif files)'
+                return render_template('updateProfile.html', id=id, form=update_user_form, fileTypeError=fileTypeError)
+
+            # update user information
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute("SELECT Email FROM accounts")
+                userdata = cursor.fetchall()
+                decodedList= [userdata]
+                # Fetch one record and return result
+                # userdata = cursor.fetchone()
+                # list = [userdata['FirstName'],
+                # userdata['LastName'],
+                # userdata['Street'],
+                # userdata['PostalCode'],
+                # userdata['UnitNumber'],
+                # userdata['MobileNumber'],
+                # userdata['Email']]
+                # decodedList = decoding(list)
+                # print(decodedList)
+                # list2 = [update_user_form.first_name.data,
+                #          update_user_form.last_name.data,
+                #          update_user_form.street.data,
+                #          update_user_form.postal_code.data,
+                #          update_user_form.unit_number.data,
+                #          update_user_form.mobile_number.data,
+                #          update_user_form.email.data]
+                # encodedlist = encoding(list2)
 
 
-        user = users.get(id)
+            for key in decodedList:
+                if update_user_form.email.data == key:
+                    emailError = "Email has already been registered!"
+                    return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
+
+            hashpassword = bcrypt.generate_password_hash(update_user_form.password)
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM accounts WHERE Id = %s', (id,))
+                userdata = cursor.fetchone()
+                list2 = [update_user_form.first_name.data,
+                         update_user_form.last_name.data,
+                         update_user_form.street.data,
+                         update_user_form.postal_code.data,
+                         update_user_form.unit_number.data,
+                         update_user_form.mobile_number.data,
+                         update_user_form.email.data]
+                print(list2)
+                encodedlist = encoding(list2)
 
 
-        avatar = request.files['avatar']
-        if user.avatar is None:
-            setattr(user, 'avatar', '/static/ProfilePhotos/Default.jpg')
-        elif avatar.filename == '':
-            setattr(user, 'avatar', user.avatar)
-        elif avatar and allowed_file(avatar.filename):
-            filename = secure_filename(avatar.filename)
+            if hashpassword != userdata['Password']:
+                PasswordAge = date.today()
+            else:
+                PasswordAge = userdata["PasswordAge"]
 
-            ver = 0
-            while os.path.isfile('/static/ProfilePhotos/' + filename):  # if theres existing file
-                ver += 1
-                for filetype in ALLOWED_EXTENSIONS:
-                    if filetype in filename.split('.'):
-                        filename = avatar.filename.split('.')[0] + str(ver) + '.' + avatar.filename.split('.')[-1]
 
-            filepath = '/static/ProfilePhotos/' + filename
-
-            avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            setattr(user, 'avatar', filepath)
-        elif not allowed_file(avatar.filename):
-            fileTypeError = 'Invalid file type. (Only accepts .png, .jpg, .jpeg, and .gif files)'
-            return render_template('updateProfile.html', id=id, form=update_user_form, fileTypeError=fileTypeError)
-        for key in users:
-            user_obj = users.get(key)
-            email = user_obj.get_email()
-            if update_user_form.email.data == user.get_email():
-                break
-            if update_user_form.email.data == email:
-                emailError = "Email has already been registered!"
-                return render_template('updateProfile.html', id=id, form=update_user_form, emailError=emailError)
-        user.set_email(update_user_form.email.data)
-        user.set_first_name(update_user_form.first_name.data)
-        user.set_last_name(update_user_form.last_name.data)
-        user.set_street(update_user_form.street.data)
-        user.set_postal_code(update_user_form.postal_code.data)
-        user.set_unit_number(update_user_form.unit_number.data)
-        user.set_mobile_number(update_user_form.mobile_number.data)
-        user.set_password(generate_password_hash(update_user_form.password.data, method='sha256'))
-
-        db['Users'] = users
-
-        db.close()
-
-        session['user_updated'] = user.get_first_name() + ' ' + user.get_last_name()
-        session['profile_updated'] = 'Profile successfully updated!'
-        return redirect(url_for('profile'))
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('UPDATE accounts set Email = "%s", Password = "%s", FirstName = "%s", LastName = "%s", Street = "%s", PostalCode = "%s", UnitNumber = "%s", MobileNumber = "%s", PasswordAge = "%s", ProfilePhoto = "%s" WHERE Id ="%s"' %
+                               (encodedlist[6],
+                                hashpassword,
+                                encodedlist[0],
+                                encodedlist[1],
+                                encodedlist[2],
+                                encodedlist[3],
+                                encodedlist[4],
+                                encodedlist[5],
+                                PasswordAge,
+                                filename,
+                                id))
+                mysql.connection.commit()
+                cursor.execute("SELECT FirstName,LastName from accounts where Id = %s" % id)
+                data = cursor.fetchone()
+                session['user_updated'] = data["FirstName"] + ' ' + data["LastName"]
+            session['profile_updated'] = 'Profile successfully updated!'
+            return redirect(url_for('profile'))
     else:
-        users_dict = {}
-        db = shelve.open('register.db', 'r')
-        users_dict = db['Users']
-        db.close()
 
-        user = users_dict.get(id)
-        update_user_form.first_name.data = user.get_first_name()
-        update_user_form.last_name.data = user.get_last_name()
-        update_user_form.street.data = user.get_street()
-        update_user_form.postal_code.data = user.get_postal_code()
-        update_user_form.unit_number.data = user.get_unit_number()
-        update_user_form.mobile_number.data = user.get_mobile_number()
-        update_user_form.email.data = user.get_email()
-        update_user_form.password.data = user.get_password()
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM accounts where Id = %s" % (id,))
+            # Fetch one record and return result
+            userdata = cursor.fetchone()
+            list = [userdata['FirstName'],
+                userdata['LastName'],
+                userdata['Street'],
+                userdata['PostalCode'],
+                userdata['UnitNumber'],
+                userdata['MobileNumber'],
+                userdata['Email']]
+            decodedList = decoding(list)
+        #print(userdata)
 
-        if 'user_id' in session and session['user_id'] == user.get_user_id():
-            return render_template('updateProfile.html', form=update_user_form)
+        update_user_form.first_name.data =decodedList[0]
+        update_user_form.last_name.data = decodedList[1]
+        update_user_form.street.data = decodedList[2]
+        update_user_form.postal_code.data = decodedList[3]
+        update_user_form.unit_number.data = decodedList[4]
+        update_user_form.mobile_number.data = decodedList[5]
+        update_user_form.email.data = decodedList[6]
+
+        if 'user_id' in session and session['user_id'] in [userdata['Id'], 1]:
+            return render_template('updateProfile.html', form=update_user_form, profile_pic=userdata['ProfilePhoto'],
+                                   user_id=id)
         else:
             return 'You do not have authorized access to this webpage.'
 
 
+
+
+
+
 @app.route('/profile')
 def profile():
-    return render_template('profile.html')
+    user_id = session['user_id']
+    #print(user_id)
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute("select * from accounts where Id = %s" % user_id)
+        userdata = cursor.fetchone()
+        list = [userdata['FirstName'],
+                userdata['LastName'],
+                userdata['Street'],
+                userdata['PostalCode'],
+                userdata['UnitNumber'],
+                userdata['MobileNumber'],
+                userdata['Email']]
+        decodedList = decoding(list)
+        id = userdata['Id']
+        CurrentPasswordAge = userdata['PasswordAge']
+        todaydate = date.today()
+        delta = todaydate - CurrentPasswordAge
+        print(delta.days)
+        if int(delta.days) > 29:
+            message = "Your password age is more than 30 days!"
+        else:
+            message = ''
+
+
+
+    #print(userdata)
+    return render_template('profile.html', data=decodedList, data2=userdata, message=message)
 
 @app.route('/logout')
 def logout():
@@ -355,118 +554,117 @@ def logout():
 
 @app.route('/<product_id>/review', methods=['GET', 'POST'])
 def review(product_id):
-    # users_dict = {}
-    # products = []
-    # db = shelve.open('products.db', 'c')
-    # CPU_list = db['CPU']
-    # RAM_list = db['RAM']
-    # GPU_list = db['GPU']
-    # MOBA_list = db['MOBA']
-    # PSU_list = db['PSU']
-    # Storage_list = db['Storage']
-    # db.close()
+    users_dict = {}
+    products = []
+    db = shelve.open('products.db', 'c')
+    CPU_list = db['CPU']
+    RAM_list = db['RAM']
+    GPU_list = db['GPU']
+    MOBA_list = db['MOBA']
+    PSU_list = db['PSU']
+    Storage_list = db['Storage']
+    db.close()
 
-    # #For loop to loop through the products.db database
-    # for eachitem in CPU_list:
-    #     products.append(CPU_list[eachitem].get_product_id())
-    # for eachitem2 in RAM_list:
-    #     products.append(RAM_list[eachitem2].get_product_id())
-    # for eachitem3 in GPU_list:
-    #     products.append(GPU_list[eachitem3].get_product_id())
-    # for eachitem4 in MOBA_list:
-    #     products.append(MOBA_list[eachitem4].get_product_id())
-    # for eachitem5 in PSU_list:
-    #     products.append(PSU_list[eachitem5].get_product_id())
-    # for eachitem6 in Storage_list:
-    #     products.append(Storage_list[eachitem6].get_product_id())
-
-
-    # if product_id in products:
-    
-    #     already_submitted = False
-    #     db_name = 'Review-' + product_id
-    #     db_count = db_name + '-Count'
-    #     if request.method == 'POST' and form.validate():
-    #         reviews_dict = {}
-    #         db = shelve.open('reviews.db', 'c')
-
-    #         # get review information based on product_id of product
-    #         try:
-
-    #             reviews_dict = db[db_name]
-    #         except:
-    #             print("Error in retrieving Reviews from reviews.db.")
-
-    #         Review.Review.count_id = db[db_count]+1
-
-    #         review = Review.Review(form.rating.data, form.title.data, form.review.data, g.user)
-    #         # set default attribute of avatar, votes, upvotes and downvotes
-    #         setattr(review, 'avatar', g.user.avatar)
-    #         setattr(review, 'votes', 0)
-    #         setattr(review, 'upvoters', [])
-    #         setattr(review, 'downvoters', [])
-
-    #         # save information into db using id of review
-    #         reviews_dict[review.get_review_id()] = review
-    #         db[db_name] = reviews_dict
-    #         db.close()
-    #         return redirect(url_for('review_submitted'))
-
-    #     elif request.method == 'GET':
-    #         reviews_dict = {}
-    #         db = shelve.open('reviews.db', 'c')
-    #         userdb = shelve.open('register.db', 'w')
-    #         try:
-    #             reviews_dict = db[db_name]
-    #         except:
-    #             print("Error in retrieving Reviews from reviews.db")
-
-    #         try:
-    #             users_dict = userdb['Users']
-    #         except:
-    #             print("Error in retrieving Reviews from reviews.db")
-
-    #         reviews_list = []
-    #         for key in reviews_dict:
-    #             rev = reviews_dict.get(key)
-    #             reviews_list.append(rev)
+    #For loop to loop through the products.db database
+    for eachitem in CPU_list:
+        products.append(CPU_list[eachitem].get_product_id())
+    for eachitem2 in RAM_list:
+        products.append(RAM_list[eachitem2].get_product_id())
+    for eachitem3 in GPU_list:
+        products.append(GPU_list[eachitem3].get_product_id())
+    for eachitem4 in MOBA_list:
+        products.append(MOBA_list[eachitem4].get_product_id())
+    for eachitem5 in PSU_list:
+        products.append(PSU_list[eachitem5].get_product_id())
+    for eachitem6 in Storage_list:
+        products.append(Storage_list[eachitem6].get_product_id())
 
 
+    if product_id in products:
+        form = ReviewForm(request.form)
+        already_submitted = False
+        db_name = 'Review-' + product_id
+        db_count = db_name + '-Count'
+        if request.method == 'POST' and form.validate():
+            reviews_dict = {}
+            db = shelve.open('reviews.db', 'c')
 
-    #         users_email_list = []
-    #         for i in range(len(reviews_list)):
-    #             review = reviews_list[i]
-    #             for key in users_dict:
-    #                 user = users_dict.get(key)
-    #                 users_email_list.append(user.get_email())
-    #                 if review.get_user_object().get_email() == user.get_email():
-    #                     setattr(review.get_user_object(), 'avatar', user.avatar)
-    #                     review.get_user_object().set_first_name(user.get_first_name())
-    #                     review.get_user_object().set_last_name(user.get_last_name())
-    #             if review.get_user_object().get_email() not in users_email_list:
-    #                 review.get_user_object().set_first_name('[deleted]')
-    #                 review.get_user_object().set_last_name('')
-    #         if 'user_id' in session:
+            # get review information based on product_id of product
+            try:
 
-            #     for i in range(len(reviews_list)):
-            #         review = reviews_list[i]
-            #         if g.user.get_email() == review.get_user_object().get_email():
-            #             already_submitted = True
-            # reviews_list = sorted(reviews_list, key=lambda review: review.votes, reverse=True)
+                reviews_dict = db[db_name]
+            except:
+                print("Error in retrieving Reviews from reviews.db.")
 
-            # db[db_count] = len(reviews_list)
-            # new_review_dict = {}
+            Review.Review.count_id = db[db_count]+1
 
-            # for index, review in enumerate(reviews_list):
-            #     review.set_review_id(index+1)
-            #     new_review_dict[index+1] = review
+            review = Review.Review(form.rating.data, form.title.data, form.review.data, g.user)
+            # set default attribute of avatar, votes, upvotes and downvotes
+            setattr(review, 'avatar', g.user.avatar)
+            setattr(review, 'votes', 0)
+            setattr(review, 'upvoters', [])
+            setattr(review, 'downvoters', [])
 
-            # db[db_name] = new_review_dict
-            # db.close()
+            # save information into db using id of review
+            reviews_dict[review.get_review_id()] = review
+            db[db_name] = reviews_dict
+            db.close()
+            return redirect(url_for('review_submitted'))
 
-            form = ReviewForm(request.form)
+        elif request.method == 'GET':
+            reviews_dict = {}
+            db = shelve.open('reviews.db', 'c')
+            userdb = shelve.open('register.db', 'w')
+            try:
+                reviews_dict = db[db_name]
+            except:
+                print("Error in retrieving Reviews from reviews.db")
+
+            try:
+                users_dict = userdb['Users']
+            except:
+                print("Error in retrieving Reviews from reviews.db")
+
+            reviews_list = []
+            for key in reviews_dict:
+                rev = reviews_dict.get(key)
+                reviews_list.append(rev)
+
+
+
+            users_email_list = []
+            for i in range(len(reviews_list)):
+                review = reviews_list[i]
+                for key in users_dict:
+                    user = users_dict.get(key)
+                    users_email_list.append(user.get_email())
+                    if review.get_user_object().get_email() == user.get_email():
+                        setattr(review.get_user_object(), 'avatar', user.avatar)
+                        review.get_user_object().set_first_name(user.get_first_name())
+                        review.get_user_object().set_last_name(user.get_last_name())
+                if review.get_user_object().get_email() not in users_email_list:
+                    review.get_user_object().set_first_name('[deleted]')
+                    review.get_user_object().set_last_name('')
+            if 'user_id' in session:
+
+                for i in range(len(reviews_list)):
+                    review = reviews_list[i]
+                    if g.user.get_email() == review.get_user_object().get_email():
+                        already_submitted = True
+            reviews_list = sorted(reviews_list, key=lambda review: review.votes, reverse=True)
+
+            db[db_count] = len(reviews_list)
+            new_review_dict = {}
+
+            for index, review in enumerate(reviews_list):
+                review.set_review_id(index+1)
+                new_review_dict[index+1] = review
+
+            db[db_name] = new_review_dict
+            db.close()
+
             template = 'products/' + product_id + '.html'
-            return render_template(template, form=form)
+            return render_template(template, form=form, count=len(reviews_list), reviews_list=reviews_list, already_submitted=already_submitted)
 
 @app.route('/review_submitted')
 def review_submitted():
@@ -684,6 +882,7 @@ def cart():
                cart_list.pop(i)
            else:
                i += 1
+        cart_list.pop(product_id)
         cart_dict[user_id] = cart_list
         db['Cart'] = cart_dict
 
@@ -1071,6 +1270,50 @@ def create_analysis():
                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
 
+
+@app.route('/Report')
+def create_analysis2():
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute('SELECT * FROM logs')
+        records = cursor.fetchall()
+
+
+    return render_template('ReportGeneration.html',logs=records)
+
+# @app.route('/Report')
+# def create_analysis():
+#     analysis_dict = {}
+#     analysis_list = {}
+#
+#
+#     analysis_db = shelve.open('analysis.db', 'c')
+#     try:
+#         analysis_quantity_dict = analysis_db['Analysis_quantity']
+#     except:
+#         print('error')
+#
+#     try:
+#         analysis_revenue_dict = analysis_db['Analysis_revenue']
+#     except:
+#         print('error')
+#
+#
+#     analysis_quantity_dict_x = []
+#     analysis_quantity_dict_y = []
+#     for i in analysis_quantity_dict:
+#         analysis_quantity_dict_x.append(i)
+#         analysis_quantity_dict_y.append(analysis_quantity_dict[i])
+#
+#     analysis_revenue_dict_x = []
+#     analysis_revenue_dict_y = []
+#     for i in analysis_revenue_dict:
+#         analysis_revenue_dict_x.append(i)
+#         analysis_revenue_dict_y.append(analysis_revenue_dict[i])
+#
+#
+#     return render_template('Report.html',
+#                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
+#                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
 @app.route('/viewProducts')
 def view_products_admin():
     db = shelve.open('products.db', 'c')
@@ -1315,22 +1558,27 @@ def forget_password():
         session.pop('user_id', None)
 
         Email = form.email.data
+        list = [Email]
+        encodedEmail = encoding(list)
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+            cursor.execute('SELECT * FROM accounts where Email = %s', (encodedEmail,))
             account = cursor.fetchone()
             if account:
                 error = None
                 random_str1 = random.randint(1000000,10000000)
                 random_str = str(random_str1)
+
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM accounts where Email = %s', (Email,))
+                    cursor.execute('SELECT * FROM accounts where Email = %s', (encodedEmail,))
                     account = cursor.fetchone()
                     Firstname = account['FirstName']
                     LastName = account['LastName']
                     hashpassword = bcrypt.generate_password_hash(random_str)
-                    fullname = "{} {}".format(Firstname,LastName)
+                    list = [Firstname,LastName]
+                    decodingNames = decoding(list)
+                    fullname = "{} {}".format(decodingNames[0],decodingNames[1])
                     sql = 'UPDATE accounts SET PasswordAge = %s, Password= %s WHERE Email = %s'
-                    val = (passwordAge,hashpassword,Email)
+                    val = (passwordAge,hashpassword,encodedEmail)
                     cursor.execute(sql,val)
                     mysql.connection.commit()
 

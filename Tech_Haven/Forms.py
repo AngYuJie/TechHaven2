@@ -22,6 +22,7 @@ class RegisterForm(Form):
     mobile_number = StringField('Mobile Number', [validators.DataRequired()])
     recaptcha = RecaptchaField()
 
+
 class ContactUsForm(Form):
     first_name = StringField('First Name', [validators.Length(min=1, max=150), validators.DataRequired("Please enter your first name")], render_kw={"placeholder": "First Name"})
     last_name = StringField('Last Name', [validators.DataRequired("Please enter your last name")], render_kw={"placeholder": "Last Name"})
@@ -59,6 +60,11 @@ class PasswordResetForm(Form):
     current_password = PasswordField('Current Password',[validators.DataRequired(), validators.Length(min=4, max=80)])
     submit = SubmitField(label='Login', validators=[DataRequired()])
 
-class securityQnsForm(Form):
-    answer = StringField('Answer', [validators.DataRequired("Please enter security question answer")])
-    submit = SubmitField(label='Login', validators=[DataRequired()])
+class OTPForm(Form):
+    email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
+    OTP = StringField('OTP PIN', [validators.Length(min=6, max=10), validators.DataRequired()])
+    recaptcha = RecaptchaField()
+
+class OTPGform(Form):
+    email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
+    recaptcha = RecaptchaField()

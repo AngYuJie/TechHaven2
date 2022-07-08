@@ -33,7 +33,16 @@
   {{ session.pop('profile_updated', None) }}
 </div>
 {% endif %}
+
 <div class="form-detail">
+{% if message %}
+
+    <div class="alert alert-success alert-dismissible">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+    </div>
+    {% endif %}
+
 
     <div class="form-left">
       <h2>General Infomation</h2>
@@ -43,24 +52,20 @@
     <div class="form-group">
 
     <div class="form-row form-row-1">
-     <div class="profpic">
-                {% if g.user.avatar %}
-                <img src="{{ g.user.avatar }}" class ="PFP">
-                {% else %}
-                <img src="/static/img/avatars/default.jpg" class ="PFP">
-                {% endif %}
+   <div class="profpic">
+ <img src="static/ProfilePhotos/{{data2['ProfilePhoto']}}">
      </div>
     </div>
 
 
      <div class="form-row form-row-2">
-        <strong class="label">Full Name: </strong>{{ g.user.get_full_name() }}
+        <strong class="label">Full Name: </strong>{{data[0]}} {{data[1]}}
      </div>
 
 
 
      <div class="form-row form-row-3">
-         <strong class="label">First Name: </strong>{{ g.user.get_first_name() }}
+         <strong class="label">First Name: </strong>{{data[0]}}
      </div>
 
 
@@ -68,7 +73,7 @@
 
 
      <div class="form-row form-row-4">
-         <strong class="label">Last Name: </strong>{{ g.user.get_last_name() }}
+         <strong class="label">Last Name: </strong>{{data[1]}}
      </div>
 
 
@@ -87,39 +92,39 @@
 
       <div class="form-group">
       <div class="form-row form-row-1">
-         <strong class="label"> Street: </strong>{{ g.user.get_street() }}
+         <strong class="label"> Street: </strong>{{data[2]}}
       </div>
       </div>
 
       <div class="form-group">
       <div class="form-row form-row-3">
-         <strong class="label"> Postal Code: </strong>{{ g.user.get_postal_code() }}
+         <strong class="label"> Postal Code: </strong>{{data[3]}}
       </div>
       </div>
 
 
       <div class="form-group">
       <div class="form-row form-row-5">
-        <strong class="label"> Unit Number: </strong>{{ g.user.get_unit_number() }}
+        <strong class="label"> Unit Number: </strong>{{data[4]}}
       </div>
       </div>
 
 
       <div class="form-group">
       <div class="form-row form-row-6">
-      <strong class="label"> Mobile Number: </strong>{{ g.user.get_mobile_number() }}
+      <strong class="label"> Mobile Number: </strong>{{data[5]}}
       </div>
       </div>
 
       <div class="form-group">
       <div class="form-row form-row-7">
-          <strong class="label">Email Address: </strong>{{ g.user.get_email() }}
+          <strong class="label">Email Address: </strong>{{data[6]}}
       </div>
       </div>
 
 
   <div class="form-row-last">
-      <a href="{{url_for('update_profile', id=g.user.get_user_id())}}"><button class="register" class="btn btn-primary" style="width: 40%">Update Profile</button></a>
+      <a href="{{url_for('update_profile', id=data2['Id'])}}"><button class="register" class="btn btn-primary" style="width: 40%">Update Profile</button></a>
 
     </div>
 

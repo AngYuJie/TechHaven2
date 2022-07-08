@@ -14,6 +14,8 @@
                                 <li class="nav-item"><a class="nav-link" href="/viewProducts">View Products</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/retrieveFeedback">View Contact us</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/analysis">Dashboard</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/Report">Report Generation</a></li>
+
                             {% else %}
                                 <li class="nav-item"><a class="nav-link" href="/Products">Products</a></li>
                                 <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
@@ -31,7 +33,7 @@
 
                         {% if 'user_id' in session %}
                             <div class="dropdown">
-                                <li class="drop-down"><li class="nav-item" ><a href="#" class="nav-link">{{ g.account['FirstName'] + " " + g.account['LastName']}}</a></li>
+                                <li class="drop-down"><li class="nav-item" ><a href="#" class="nav-link">{{ g.account2[0] + " " + g.account2[1]}}</a></li>
                                     <div class="dropdown-content">
                                          {% if g.account['Id'] %}
                                              <a href="/updateProfile/{{g.account['Id']}}">Update Profile</a>

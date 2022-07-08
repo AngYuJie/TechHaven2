@@ -11,16 +11,18 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 `PostalCode` varchar(100) NOT NULL,
 `UnitNumber` varchar(100) NOT NULL,
 `MobileNumber` varchar(100) NOT NULL,
-`FailedLoginDateTime` datetime NULL DEFAULT NULL,
+`securityQn` varchar(100) NOT NULL,
+`securityQnAns` varchar(100) NOT NULL,
+`NextLoginTime` datetime NULL DEFAULT NULL,
 `FailedLoginDate` DATE NULL DEFAULT NULL,
 `FailedLoginTime` TIME NULL DEFAULT NULL,
 `PasswordAge` DATE NULL DEFAULT NULL,
-`AccountType` varchar(10) NOT NULL,
+`AccountType` varchar(100) NOT NULL,
 `NoOfFailedAttemps` varchar(2) NOT NULL,
 `AccountStatus` varchar(9) NOT NULL,
 `ProfilePhoto` varchar(100) NOT NULL,
-
-
+`OTP` varchar(100) DEFAULT NULL,
+`OTPAge` datetime NULL DEFAULT NULL,
 PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
