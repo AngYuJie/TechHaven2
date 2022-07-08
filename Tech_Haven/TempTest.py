@@ -17,7 +17,7 @@ def decoding(list):
         message_bytes = base64.b64decode(base64_bytes)
         message = message_bytes.decode('ascii')
         decodedList.append(message)
-    print(decodedList)
+
     return decodedList
 
 
