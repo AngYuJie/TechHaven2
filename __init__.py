@@ -108,6 +108,7 @@ def home():
 def about():
     return render_template('about.html')
 
+securityQn = ""
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -203,10 +204,10 @@ def login():
                         message = "password age is more than 30 days!"
                     else:
                         message = 'test'
-                
+                global securityQn
                 securityQn = g.account["securityQn"]
                 flash(message)
-                return redirect(url_for('securityQns',message = securityQn))
+                return redirect(url_for('securityQns'))
 
             elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Non-Verified-Customer':
                 return redirect(url_for('Verify'))
@@ -255,7 +256,7 @@ def login():
 
 @app.route('/securityQns', methods=["GET"])
 def securityQns():
-    g.securityQn = request.args.get("message")
+    g.securityQn = securityQn
     form = securityQnsForm(request.form)
     if request.method == 'POST' and form.validate():
         securityQnAns = form.answer
