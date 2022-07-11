@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if 'user_id' in session %}
+        {{ g.user.get_full_name() }}'s Cart
+    {% else %}
+        Please Login/Register
+    {% endif %}
+{% endblock %}
+
+
+{% block content %}
+    {% if 'user_id' in session %}
+     <body>
+        <script src="https://js.stripe.com/v3/"></script>
+        <br>
+        <br>
+        <br>
+         <div class="container">
+            <h1 style="text-align: center;">{{ g.user.get_full_name() }}'s Cart</h1>
+
+            <table style="width: 100%;">
+
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price for each piece</th>
+                        <th>Total Price</th>
+                        <th width="116px">Action</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                {% for i in range(cart_list|length) %}
+                    <tr>
+                        {% if cart_list[i].get_product_id() in CPU_list %}
+                            {% set item_information = CPU_list[cart_list[i].get_product_id()] %}
+                        {% elif cart_list[i].get_product_id() in RAM_list %}
+                            {% set item_information = RAM_list[cart_list[i].get_product_id()] %}
+                        {% elif cart_list[i].get_product_id() in GPU_list %}
+                            {% set item_information = GPU_list[cart_list[i].get_product_id()] %}
+                        {% elif cart_list[i].get_product_id() in MOBA_list %}
+                            {% set item_information = MOBA_list[cart_list[i].get_product_id()] %}
+                        {% elif cart_list[i].get_product_id() in PSU_list %}
+                            {% set item_information = PSU_list[cart_list[i].get_product_id()] %}
+                        {% elif cart_list[i].get_product_id() in Storage_list %}
+                            {% set item_information = Storage_list[cart_list[i].get_product_id()] %}
+                        {% endif %}
+                        {% set quantity = cart_list[i].get_quantity() | int %}
+                        {% set price = item_information.get_price() | int %}
+                        <td>{{ item_information.get_name() }}</td>
+                        <td>{{ quantity }}</td>
+                        <td>${{ '%.2f' | format(price | float) }}</td>
+                        <td>${{ '%.2f' | format(quantity*price | float) }}</td>
+
+                        <td>
+<!--                            <form action="{{ url_for('update_product', product_id=i) }}" method="POST">-->
+<!--                                <input type="submit" value="Update" class="btn btn-warning">-->
+<!--                            </form>-->
+                            <a href="/updateProduct/{{i}}"><button class="btn btn-warning">Update</button></a>
+                        </td>
+                        <td>
+                            <form action="{{ url_for('delete_product', product_id=i) }}" method="POST">
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ item_information.get_product_id() }}">
+                                  Delete
+                                </button>
+
+                                <!-- The Modal -->
+                                <div class="modal" id="myModal_{{ item_information.get_product_id() }}">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <!-- Modal Header -->
+                                      <div class="modal-header">
+                                        <h4 class="modal-title">Delete Confirmation</h4>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                      </div>
+                                      <!-- Modal body -->
+                                      <div class="modal-body">
+                                        Are you sure you want to delete {{item_information.get_name()}} from your cart?
+                                      </div>
+                                      <!-- Modal footer -->
+                                      <div class="modal-footer">
+                                        <input type="submit" value="Delete" class="btn btn-danger">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
+
+            </table>
+            <br>
+            <p style="font-size: 1.5em;"><strong>Subtotal: </strong>$<span id="Subtotal">{{'%0.2f'| format(subtotal|float)}}</span></p>
+             {% if cart_list|length > 0 %}
+                {% if subtotal >= 999999.99 %}
+                    <div style="text-align: center; width: 100%;">
+                        <button type="button" class="btn btn-primary" style="margin: 10px;" onclick="alert('Subtotal cannot be more than $999999.99')">Checkout with Stripe ➞</button>
+                    </div>
+                {% else %}
+                    <div style="text-align: center; width: 100%;">
+                        <button type="button" id="checkout-button" class="btn btn-primary" style="margin: 10px;">Checkout with Stripe ➞</button>
+                    </div>
+                {% endif %}
+             {% endif %}
+
+
+         </div>
+     </body>
+
+    {% else %}
+        Please <a href="{{url_for('login')}}">login/register</a> to continue.
+    {% endif %}
+
+<script type="text/javascript">
+              // Create an instance of the Stripe object with your publishable API key
+              var stripe = Stripe('pk_test_51KDhRPJ2w3z9iOVI9rVg9fkcx0RqSZJ6H9j6SZbEmUue61eznf3aDc1TM4QXlQvRaJRQV6lmyGeKdEnhgaYsRp6R00qRhAiy9r');
+              var checkoutButton = document.getElementById('checkout-button');
+
+              checkoutButton.addEventListener('click', function() {
+                // Create a new Checkout Session using the server-side endpoint you
+                // created in step 3.
+                fetch('/create-checkout-session', {
+                  method: 'POST',
+                })
+                .then(function(response) {
+                  return response.json();
+                })
+                .then(function(session) {
+                  return stripe.redirectToCheckout({ sessionId: session.id });
+                })
+                .then(function(result) {
+                  // If `redirectToCheckout` fails due to a browser or network
+                  // error, you should display the localized error message to your
+                  // customer using `error.message`.
+                  if (result.error) {
+                    alert(result.error.message);
+                  }
+                })
+                .catch(function(error) {
+                  console.error('Error:', error);
+                });
+              });
+
+</script>
+
+{% endblock %}

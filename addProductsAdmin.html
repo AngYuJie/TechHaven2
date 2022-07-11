@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Add Product{% endblock %}
+
+{% block content %}
+<style>
+    label {
+        padding-top: 10px;
+    }
+    #span_type, #span_id, #span_name, #span_description, #span_form_name, #span_price {
+        color: red;
+        font-size: 14px;
+    }
+</style>
+<script>
+    var product_id_list = {{product_id_list | tojson }}
+    var form_name_list = {{form_name_list | tojson }}
+</script>
+<script src="static/Js/AddProductsAdmin/AddProductsAdmin.js"></script>
+
+<div style="margin: 150px auto; text-align: center; width: 1000px">
+    <h1>Add Product</h1>
+    <form action="{{ url_for('add_products_admin') }}" method="POST" enctype=multipart/form-data >
+        <div style="text-align: left">
+            <h5>
+                <label>Image: </label>
+                <input type="file" name="file" style="width: 100%">
+                <span id="span_type" class="'error">&nbsp;</span>
+                <br>
+
+                <label>Type: </label>
+                <select name="type" style="width: 100%">
+                    <option value="CPU">CPU</option>
+                    <option value="RAM">RAM</option>
+                    <option value="GPU">GPU</option>
+                    <option value="MOBA">MOBA</option>
+                    <option value="PSU">PSU</option>
+                    <option value="Storage">Storage</option>
+                </select>
+                <span class="'error">&nbsp;</span>
+                <br>
+
+                <label>Product ID: </label>
+                <input type="text" name="product_id" placeholder="Product ID" style="width: 100%">
+                <span id="span_id" class="'error">&nbsp;</span>
+                <br>
+
+                <label>Product Name: </label>
+                <input type="text" name="product_name" placeholder="Name" style="width: 100%">
+                <span id="span_name" class="'error">&nbsp;</span>
+                <br>
+
+                <label>Product Description: </label>
+                <textarea name="product_description"  placeholder="Description" style="width: 100%"></textarea>
+                <span id="span_description" class="'error">&nbsp;</span>
+                <br>
+
+                <label>Product Price: </label>
+                <input type="number" name="product_price" placeholder="Price" style="width: 100%">
+                <span id="span_price">&nbsp;</span>
+                <br>
+
+                <label>Form Name: </label>
+                <input type="text" name="form_name" placeholder="Form Name" style="width: 100%">
+                <span id="span_form_name">&nbsp;</span>
+                <br>
+            </h5>
+        </div>
+        <br>
+        <button type="button" class="btn btn-warning" onclick="location.href='/viewProducts'">Products Page</button>
+        &nbsp; &nbsp;
+        <button type="button" name='Submit' class="btn btn-warning" onclick="check()" id="button">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

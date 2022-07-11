@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Retrieve Feedback{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelperContactUs.html" import render_field %}
+
+<div style="padding: 100px 50px">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Subject</th>
+        <th>Remarks</th>
+        <th style="width: 75px">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for feedback in feedbacks_list %}
+        <tr>
+          <td>{{ feedback.get_first_name() }}</td>
+          <td>{{ feedback.get_last_name() }}</td>
+          <td>{{ feedback.get_email() }}</td>
+          <td>{{ feedback.get_subject() }}</td>
+          <td>{{ feedback.get_inquiry() }}</td>
+          <td><a href="/createReply/{{ feedback.get_feedback_id() }}"><button type="" class="btn btn-warning">Reply</button></a>
+
+          <td><form action="{{url_for('delete_feedback', feedback_id=feedback.get_feedback_id())}}"  method="POST">
+                <!-- Button to Open the Modal -->
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ feedback.get_feedback_id() }}">
+                  Delete
+                </button>
+                <!-- The Modal -->
+                <div class="modal" id="myModal_{{ feedback.get_feedback_id() }}">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <!-- Modal Header -->
+                      <div class="modal-header">
+                        <h4 class="modal-title">Delete Confirmation</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <!-- Modal body -->
+                      <div class="modal-body">
+                        Are you sure you want to delete the remarks of {{feedback.get_first_name()}} {{feedback.get_last_name()}}?
+                      </div>
+                      <!-- Modal footer -->
+                      <div class="modal-footer">
+                        <input type="submit" value="Delete" class="btn btn-danger">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+          </form></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+
+
+{% endblock %}
+
+

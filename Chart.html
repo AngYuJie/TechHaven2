@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Analysis{% endblock %}
+
+
+{% block content %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<div style="margin-top:150px; text-align:center; padding: 50px">
+    <h1>Dashboard</h1>
+    <br><br>
+    <h4>Quantity Sold</h4>
+    <canvas id="myChart" style="max-width:100%"></canvas>
+    <br><br>
+    <h4>Revenue</h4>
+    <canvas id="myChart1" style="max-width:100%"></canvas>
+</div>
+
+<script>
+
+<!-- chart for quantity -->
+new Chart("myChart", {
+  type: "bar",
+  data: {
+    labels: {{analysis_quantity_dict_x | tojson}},
+    datasets: [{
+      label: 'Quantity',
+      data: {{ analysis_quantity_dict_y }},
+      backgroundColor: "red",
+      fill: false
+    }]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+      yAxes: [{ticks: {min: 0}}],
+    },
+    title: {
+      display: false,
+      text: "Quantity Sold"
+    }
+  }
+});
+
+<!-- chart for revenue-->
+new Chart("myChart1", {
+  type: "bar",
+  data: {
+    labels: {{analysis_revenue_dict_x | tojson}},
+    datasets: [{
+      label: 'Quantity',
+      data: {{ analysis_revenue_dict_y }},
+      backgroundColor: "blue",
+      fill: false
+    }]
+  },
+  options: {
+    legend: {display: false},
+    scales: {
+      yAxes: [{ticks: {min: 0}}],
+    },
+    title: {
+      display: false,
+      text: "Quantity Sold"
+    }
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Retrieve Feedback{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelperContactUs.html" import render_field %}
+
+<div style="padding: 100px 50px">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th colspan="2">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product_id in CPU_list %}
+        <tr>
+          <td>CPU</td>
+          <td>{{ product_id }}</td>
+          <td>{{ CPU_list[product_id].get_name() }}</td>
+          <td>{{ CPU_list[product_id].get_description() }}</td>
+          <td>${{ CPU_list[product_id].get_price() }}</td>
+          <td><a href="/updateProductsAdmin/{{ product_id }}"><button type="button" class="btn btn-warning">Update</button></a>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ CPU_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ CPU_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{CPU_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+
+
+
+
+
+      {% for product_id in RAM_list %}
+        <tr>
+          <td>RAM</td>
+          <td>{{ product_id }}</td>
+          <td>{{ RAM_list[product_id].get_name() }}</td>
+          <td>{{ RAM_list[product_id].get_description() }}</td>
+          <td>${{ RAM_list[product_id].get_price() }}</td>
+          <td><a href="/updateProductsAdmin/{{ product_id }}"><button type="" class="btn btn-warning">Update</button></a>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ RAM_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ RAM_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{RAM_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+
+
+
+
+
+      {% for product_id in GPU_list %}
+        <tr>
+          <td>GPU</td>
+          <td>{{ product_id }}</td>
+          <td>{{ GPU_list[product_id].get_name() }}</td>
+          <td>{{ GPU_list[product_id].get_description() }}</td>
+          <td>${{ GPU_list[product_id].get_price() }}</td>
+          <td><a href="/updateProductsAdmin/{{ product_id }}"><button type="" class="btn btn-warning">Update</button></a>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ GPU_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ GPU_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{GPU_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      
+      
+      
+      
+      
+      {% for product_id in MOBA_list %}
+        <tr>
+          <td>MOBA</td>
+          <td>{{ product_id }}</td>
+          <td>{{ MOBA_list[product_id].get_name() }}</td>
+          <td>{{ MOBA_list[product_id].get_description() }}</td>
+          <td>${{ MOBA_list[product_id].get_price() }}</td>
+          <td><a href="/updateProductsAdmin/{{ product_id }}"><button type="" class="btn btn-warning">Update</button></a>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ MOBA_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ MOBA_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{MOBA_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      
+      
+      
+      
+      
+      {% for product_id in PSU_list %}
+        <tr>
+          <td>PSU</td>
+          <td>{{ product_id }}</td>
+          <td>{{ PSU_list[product_id].get_name() }}</td>
+          <td>{{ PSU_list[product_id].get_description() }}</td>
+          <td>${{ PSU_list[product_id].get_price() }}</td>
+          <td><a href="/updateProductsAdmin/{{ product_id }}"><button type="" class="btn btn-warning">Update</button></a>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ PSU_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ PSU_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{PSU_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      
+      
+      
+      
+      
+      {% for product_id in Storage_list %}
+        <tr>
+          <td>Storage</td>
+          <td>{{ product_id }}</td>
+          <td>{{ Storage_list[product_id].get_name() }}</td>
+          <td>{{ Storage_list[product_id].get_description() }}</td>
+          <td>${{ Storage_list[product_id].get_price() }}</td>
+          <td>
+            <form action="{{ url_for('update_products_admin', product_id=product_id) }}" method="POST">
+              <input type="submit" value="Update" class="btn btn-warning">
+            </form>
+          </td>
+          <td>
+            <form action="{{ url_for('delete_products_admin', product_id=product_id) }}" method="POST">
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#myModal_{{ Storage_list[product_id].get_form_name()|replace(',', '-', 10) }}">Delete</button>
+              <div class="modal" id="myModal_{{ Storage_list[product_id].get_form_name()|replace(',', '-', 10) }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                      <h4 class="modal-title">Delete Confirmation</h4>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                      Are you sure you want to delete {{Storage_list[product_id].get_name()}} from the product list?
+                    </div>
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                      <input type="submit" value="Delete" class="btn btn-danger">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color:white">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div style="text-align: center">
+    <button class="btn btn-info" onclick="location.href='/addProductsAdmin'">Add Product</button>
+  </div>
+</div>
+
+
+
+
+{% endblock %}
+
+

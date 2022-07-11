@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+
+
+{% block content %}
+<style>
+
+.card {
+ box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+ max-width: 285px;
+ margin: 10px;
+ text-align: center;
+ font-family: arial;
+ display:inline-block;
+}
+
+.price {
+  color: grey;
+  font-size: 22px;
+}
+
+.card button:hover {
+  opacity: 0.7;
+}
+.cart-column {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid black;
+    margin-right: 1.5em;
+    padding-bottom: 10px;
+    margin-top: 10px;
+}
+.cart-header {
+    font-weight: bold;
+    font-size: 1.25em;
+    color: #333;
+}
+.cart-row {
+    display: flex;
+}
+
+.cart-item {
+    width: 45%;
+}
+
+.cart-price {
+    width: 20%;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.cart-quantity {
+    width: 35%;
+}
+
+.cart-item-title {
+    color: #333;
+    margin-left: .5em;
+    font-size: 1.2em;
+}
+
+.cart-item-image {
+    width: 75px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.btn-danger {
+    color: white;
+    background-color: #EB5757;
+    border: none;
+    border-radius: .3em;
+    font-weight: bold;
+}
+
+.shop-item-image {
+    width: 100%;
+}
+
+.img-container {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    padding: 5px 5px;
+}
+
+.shop-item-title-CPU, .shop-item-title-MOBA, .shop-item-title-Storage {
+    height:100px;
+
+ }
+
+.shop-item-title-GPU, .shop-item-title-PSU {
+    height:150px
+}
+
+.shop-item-title-RAM {
+    height:200px
+}
+
+h1 {
+    padding-top: 50px
+}
+
+#CPU, #RAM, #GPU, #MOBA, #PSU, #Storage {
+    text-align: center;
+    padding-top: 100px
+}
+</style>
+<script type="module" src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule="" src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.js"></script>
+<br><br>
+
+<h1 id="CPU">CPU</h1>
+{% for CPU in CPU_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{CPU_list[CPU].get_img()}} alt={{CPU}} class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-CPU">{{ CPU_list[CPU].get_name() }}</h2>
+        <p>{{ CPU_list[CPU].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(CPU_list[CPU].get_price()| float) }}</p>
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{CPU}}">
+            <input type="hidden" name="product_name" value='{{CPU_list[CPU].get_form_name()}}'>
+            <input type="hidden" name="price" value={{CPU_list[CPU].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" name="quantity" id="quantity-{{CPU}}" value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{CPU}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{CPU_list[CPU].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=CPU) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+
+<br><br><br>
+<h1 id="RAM">RAM</h1>
+{% for RAM in RAM_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{RAM_list[RAM].get_img()}} alt="RYZEN 5600X" class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-RAM">{{ RAM_list[RAM].get_name() }}</h2>
+        <p>{{ RAM_list[RAM].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(RAM_list[RAM].get_price()| float) }}</p>
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{RAM}}">
+            <input type="hidden" name="product_name" value='{{RAM_list[RAM].get_form_name()}}'>
+            <input type="hidden" name="price" value={{RAM_list[RAM].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" name="quantity" id='quantity-{{RAM}}' value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{RAM}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{RAM_list[RAM].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=RAM) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+
+<br><br><br>
+<h1 id="GPU">GPU</h1>
+{% for GPU in GPU_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{GPU_list[GPU].get_img()}} alt="RYZEN 5600X" class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-GPU">{{ GPU_list[GPU].get_name() }}</h2>
+        <p>{{ GPU_list[GPU].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(GPU_list[GPU].get_price()| float) }}</p>
+
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{GPU}}">
+            <input type="hidden" name="product_name" value='{{GPU_list[GPU].get_form_name()}}'>
+            <input type="hidden" name="price" value={{GPU_list[GPU].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" name="quantity" id="quantity-{{GPU}}" value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{GPU}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{GPU_list[GPU].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=GPU) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+
+<br><br><br>
+<h1 id="MOBA">MOBA</h1>
+{% for MOBA in MOBA_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{MOBA_list[MOBA].get_img()}} alt="RYZEN 5600X" class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-MOBA">{{ MOBA_list[MOBA].get_name() }}</h2>
+        <p>{{ MOBA_list[MOBA].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(MOBA_list[MOBA].get_price()| float) }}</p>
+
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{MOBA}}">
+            <input type="hidden" name="product_name" value='{{MOBA_list[MOBA].get_form_name()}}'>
+            <input type="hidden" name="price" value={{MOBA_list[MOBA].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" name="quantity" id="quantity-{{MOBA}}" value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{MOBA}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{MOBA_list[MOBA].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=MOBA) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+
+<br><br><br>
+<h1 id="PSU">PSU</h1>
+{% for PSU in PSU_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{PSU_list[PSU].get_img()}} alt="RYZEN 5600X" class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-PSU">{{ PSU_list[PSU].get_name() }}</h2>
+        <p>{{ PSU_list[PSU].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(PSU_list[PSU].get_price()| float) }}</p>
+
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{PSU}}">
+            <input type="hidden" name="product_name" value='{{PSU_list[PSU].get_form_name()}}'>
+            <input type="hidden" name="price" value={{PSU_list[PSU].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" id="quantity-{{PSU}}" name="quantity" value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{PSU}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{PSU_list[PSU].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=PSU) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+
+
+
+<br><br><br>
+<h1 id="Storage">Storage</h1>
+{% for Storage in Storage_list %}
+    <div class="card">
+        <div class="img-container">
+            <img src={{Storage_list[Storage].get_img()}} alt="RYZEN 5600X" class="shop-item-image">
+        </div>
+        <h2 class="shop-item-title-Storage">{{ Storage_list[Storage].get_name() }}</h2>
+        <p>{{ Storage_list[Storage].get_description() }}</p>
+        <p class="shop-item-price">Price: ${{ '%.2f'|format(Storage_list[Storage].get_price()| float) }}</p>
+
+
+        <form action="{{ url_for('add_to_cart') }}" method="post">
+            <input type="hidden" name="product_id" value="{{Storage}}">
+            <input type="hidden" name="product_name" value='{{Storage_list[Storage].get_form_name()}}'>
+            <input type="hidden" name="price" value={{Storage_list[Storage].get_price()}}>
+            <label>Quantity:</label>
+            <input type="number" id="quantity-{{Storage}}" name="quantity" value="1" min="1">
+            {% if 'user_id' in session %}
+            <input type="submit" class="btn btn-primary shop-item-button" id="submit-quantity-{{Storage}}" value="Add To Cart" onclick="alert(document.getElementById(this.id.slice(7)).value + ' {{Storage_list[Storage].get_name()}}'  + ' have been added to your cart')">
+            {% endif %}
+        </form>
+
+        {% if 'user_id' not in session %}
+        <div style="text-align: center;">
+            <a href="/login"><button class="btn btn-primary shop-item-button">Add To Cart</button></a>
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('review', product_id=Storage) }}"><button class="btn btn-secondary" type="button" style="margin: 5px;">Review</button></a>
+    </div>
+{% endfor %}
+<br><br>
+
+
+</div>
+
+
+
+
+{% endblock %}
