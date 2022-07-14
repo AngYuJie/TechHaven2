@@ -8,6 +8,7 @@
   .form-group {width: 100%;}
   .container {padding: 20px 60px;}
   .btn-holder{text-align: center;}
+  .form-right {color:white;}
 
   ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: grey !important;
@@ -39,7 +40,7 @@
 
 
 
-<form method="POST" action="" class="">
+<form method="POST" action="" class="form-detail">
     <div class="form-left">
       <h2>General Infomation</h2>
 
@@ -69,26 +70,36 @@
           <span id="span_password">&nbsp;</span>
       </div>
 
-      <div class="form-group">
+          <div class="form-group">
         <div class="form-row form-row-3">
             {{ render_field(form.confirm, class="form-control") }}
             <span id="span_confirm">&nbsp;</span>
         </div>
-      </div>
 
-      <div class="form-group">
-        <div class="form-row">
-        <div>Choose your security question</div>
-        {{form.securityQn}}
-  
-        <span id="span_confirm">&nbsp;</span>
+
+        <div class="form-row form-row-3">
+            {{ render_field(form.securityQn, class="form-control") }}
+            <span id="span_securityQn">&nbsp;</span>
         </div>
-      </div>
 
-      <div class="form-row">
-        {{ render_field(form.securityQnAns, class="form-control") }}
-        <span id="span_securityQnAns">&nbsp;</span>
-    </div>
+
+
+
+
+        <div class="form-row form-row-3">
+            {{ render_field(form.securityQnAns, class="form-control") }}
+            <span id="span_securityQnAns">&nbsp;</span>
+        </div>
+
+
+
+
+
+
+
+
+
+
 
 
     </div>

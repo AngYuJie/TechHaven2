@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm,securityQnsForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -252,51 +252,118 @@ def login():
 
 
 
+@app.route('/securityQns', methods=["GET", "POST"])
+def securityQns():
+    g.securityQn = securityQn
+    list = []
+    global Email
+    list.append(Email)
+    encodedEmail = encoding(list)
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+        g.account = cursor.fetchone()
+    form = securityQnsForm(request.form)
+    if request.method == 'POST' and form.validate():
+        userInput = form.answer.data
+        lst = []
+        lst.append(userInput)
+        encodedUserInput = encoding(lst)
+        global userId
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            print("lol")
+            cursor.execute('SELECT securityQnAns from accounts where Id = %s', (userId))
+            mysql.connection.commit()
+            securityQnAnsDict = cursor.fetchone()
+            print(securityQnAnsDict["securityQnAns"])
+            print(encodedUserInput[0])
+        if encodedUserInput[0] == securityQnAnsDict["securityQnAns"]:
+            print("??")
+            session['user_id'] = g.account["Id"]
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
+                val = ("0",None,None,None,encodedEmail[0])
+                cursor.execute(sql,val)
+                mysql.connection.commit()
+
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+                account = cursor.fetchone()
+                CurrentPasswordAge = account['PasswordAge']
+                todaydate = date.today()
+                delta = todaydate - CurrentPasswordAge
+                print(delta.days)
+                if int(delta.days) > 30:
+                    message = "password age is more than 30 days!"
+                else:
+                    message = 'test'
+                flash(message)
+            print("yes")
+            return redirect(url_for("home"))
+
+        else:
+            print("no")
+            error = "wrong answer"
+            flash(error)
+            return render_template("securityQns.html", form=form)
+
+    print("?????")
+    error = "wrong answer"
+    return render_template("securityQns.html", form=form, errormsg=error)
+
 @app.route('/register', methods=["GET", "POST"])
 def register():
     form = RegisterForm(request.form)
     todaydate = date.today()
     current_date = todaydate.strftime("%Y-%D-%M")
+    print("test5")
     if request.method == 'POST' and form.validate():
-            FirstName = form.first_name.data
-            LastName = form.last_name.data
-            Password = form.password.data
-            Email = form.email.data
-            Street = form.street.data
-            PostalCode = form.postal_code.data
-            UnitNumber = form.unit_number.data
-            MobileNumber = form.mobile_number.data
-            hashpassword = bcrypt.generate_password_hash(Password)
-            list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber]
-            encoder = encoding(list)
-            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                cursor.execute('SELECT * FROM accounts where Email = %s', (encoder[2],))
-                account = cursor.fetchone()
+        print("test4")
+        FirstName = form.first_name.data
+        LastName = form.last_name.data
+        Password = form.password.data
+        Email = form.email.data
+        Street = form.street.data
+        PostalCode = form.postal_code.data
+        UnitNumber = form.unit_number.data
+        MobileNumber = form.mobile_number.data
+        securityQn = form.securityQn.data
+        securityQnAns = form.securityQnAns.data
+        hashpassword = bcrypt.generate_password_hash(Password)
+        list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber,securityQnAns]
+        encoder = encoding(list)
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            print("test3")
+            cursor.execute('SELECT * FROM accounts where Email = %s', (encoder[2],))
+            account = cursor.fetchone()
 
-                if account:
-                    email_error = 'Email Has been Registered'
-                    return render_template('register.html', form=form, email_error=email_error)
+            if account:
+                print("test wtf is going on")
+                email_error = 'Email Has been Registered'
+                return render_template('register.html', form=form, email_error=email_error)
 
-                else:
-                    currentTime = datetime.now()
-                    random_str1 = random.randint(1000000,10000000)
-                    random_str = str(random_str1)
-                    OtpDateTime = currentTime+timedelta(minutes=30)
+            else:
+                print("test1")
+                currentTime = datetime.now()
+                random_str1 = random.randint(1000000,10000000)
+                random_str = str(random_str1)
+                OtpDateTime = currentTime+timedelta(minutes=30)
 
-                    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s,%s)',
-                                       (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],current_date,"Non-Verified-Customer",0,'Active','default.jpg',random_str,OtpDateTime))
-                        mysql.connection.commit()
-                        confirmation = "We have sent you the OTP an OTP to your email account."
-                        message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
-                        mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
-                        subject="OTP Verification",
-                        body=message)
-                    return redirect(url_for('Verify'))
+                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                    print("test2")
+                    cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s,%s)',
+                                    (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],securityQn,encoder[7],current_date,"Non-Verified-Customer",0,'Active','default.jpg',random_str,OtpDateTime))
+                    mysql.connection.commit()
+                    confirmation = "We have sent you the OTP an OTP to your email account."
+                    message = "We have sent you the  reset password link in your email.\n\nThe pin is {}".format(random_str)
+                    mail.send_message(sender='tech.haven.we.sell.you.buy@gmail.com',recipients=[Email],
+                    subject="OTP Verification",
+                    body=message)
+                return redirect(url_for('Verify'))
 
 
     else:
         return render_template('register.html', form=form)
+
 
 
 

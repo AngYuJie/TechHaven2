@@ -14,6 +14,8 @@ class RegisterForm(Form):
     email = StringField('Email', [validators.DataRequired(), validators.Email("Invalid Email")])
     password = PasswordField('Password', [validators.DataRequired(),validators.EqualTo('confirm', message='Passwords do not match')])
     confirm = PasswordField('Confirm Password')
+    securityQn = RadioField('Choose your security question', choices=[("What is your first car?","What is your first car?"), ("What is one of your siblings names?","What is one of your siblings names?"), ('What is a brand of footwear that you own?','What is a brand of footwear that you own?')], validators=[validators.DataRequired()])
+    securityQnAns = StringField('What is the answer to the selected security question?', [validators.DataRequired()])
     street = StringField('Street', [validators.DataRequired()])
     postal_code = StringField('Postal Code', [validators.DataRequired()], render_kw={"placeholder": "000000"})
     unit_number = StringField('Unit Number', [validators.DataRequired()], render_kw={"placeholder": "#00-00"})
@@ -66,3 +68,7 @@ class OTPForm(Form):
 class OTPGform(Form):
     email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
     recaptcha = RecaptchaField()
+
+class securityQnsForm(Form):
+    answer = StringField('Answer', [validators.DataRequired("Please enter security question answer")])
+    submit = SubmitField(label='Login')
