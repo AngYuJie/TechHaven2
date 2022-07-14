@@ -35,11 +35,7 @@ app.config["MAIL_PASSWORD"] = 'teisjyvrlvrpnhgk'
 app.config['MAIL_DEFAULT_SENDER'] = 'tech.haven.we.sell.you.buy@gmail.com'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-<<<<<<< Updated upstream
 app.config['MYSQL_PASSWORD'] = 'csxk190803'
-=======
-app.config['MYSQL_PASSWORD'] = 'FUCK YOU'
->>>>>>> Stashed changes
 app.config['MYSQL_DB'] = 'TechHavenDataBase'
 
 ######################## CAPTCHA ############################################
@@ -329,10 +325,6 @@ def register():
             account = cursor.fetchone()
 
             if account:
-<<<<<<< Updated upstream
-                print("test wtf is going on")
-=======
->>>>>>> Stashed changes
                 email_error = 'Email Has been Registered'
                 return render_template('register.html', form=form, email_error=email_error)
 
