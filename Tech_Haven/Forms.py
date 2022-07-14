@@ -68,3 +68,7 @@ class OTPForm(Form):
 class OTPGform(Form):
     email = EmailField('Email Address',[validators.DataRequired(), validators.Email()])
     recaptcha = RecaptchaField()
+
+class securityQnsForm(Form):
+    answer = StringField('Answer', [validators.DataRequired("Please enter security question answer")])
+    submit = SubmitField(label='Login')

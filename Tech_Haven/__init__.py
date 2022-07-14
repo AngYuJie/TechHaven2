@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm, securityQnsForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -35,7 +35,11 @@ app.config["MAIL_PASSWORD"] = 'teisjyvrlvrpnhgk'
 app.config['MAIL_DEFAULT_SENDER'] = 'tech.haven.we.sell.you.buy@gmail.com'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
+<<<<<<< Updated upstream
 app.config['MYSQL_PASSWORD'] = 'csxk190803'
+=======
+app.config['MYSQL_PASSWORD'] = 'FUCK YOU'
+>>>>>>> Stashed changes
 app.config['MYSQL_DB'] = 'TechHavenDataBase'
 
 ######################## CAPTCHA ############################################
@@ -108,6 +112,9 @@ def home():
 def about():
     return render_template('about.html')
 
+securityQn = ""
+userId = ""
+Email = ""
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -116,6 +123,7 @@ def login():
     if request.method == 'POST' and form.validate():
         session.clear()
         list = []
+        global Email
         Email = form.email.data
         list.append(Email)
         encodedEmail = encoding(list)
@@ -185,26 +193,12 @@ def login():
 
 
             if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Verified-Customer':
-                session['user_id'] = g.account['Id']
-                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
-                    val = ("0",None,None,None,encodedEmail[0])
-                    cursor.execute(sql,val)
-                    mysql.connection.commit()
+                global securityQn
+                securityQn = g.account["securityQn"]
+                global userId
+                userId = str(g.account["Id"])
+                return redirect(url_for('securityQns'))
 
-                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
-                    account = cursor.fetchone()
-                    CurrentPasswordAge = account['PasswordAge']
-                    todaydate = date.today()
-                    delta = todaydate - CurrentPasswordAge
-                    print(delta.days)
-                    if int(delta.days) > 30:
-                        message = "password age is more than 30 days!"
-                    else:
-                        message = 'test'
-                flash(message)
-                return redirect(url_for('home',message=message))
             elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Non-Verified-Customer':
                 return redirect(url_for('Verify'))
 
@@ -250,7 +244,63 @@ def login():
 
     return render_template('login.html',form=form, error=error)
 
+@app.route('/securityQns', methods=["GET", "POST"])
+def securityQns():
+    g.securityQn = securityQn
+    list = []
+    global Email
+    list.append(Email)
+    encodedEmail = encoding(list)
+    with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+        cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+        g.account = cursor.fetchone()
+    form = securityQnsForm(request.form)
+    if request.method == 'POST' and form.validate():
+        userInput = form.answer.data
+        lst = []
+        lst.append(userInput)
+        encodedUserInput = encoding(lst)
+        global userId
+        with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+            print("lol")
+            cursor.execute('SELECT securityQnAns from accounts where Id = %s', (userId))
+            mysql.connection.commit()
+            securityQnAnsDict = cursor.fetchone()
+            print(securityQnAnsDict["securityQnAns"])
+            print(encodedUserInput[0])
+        if encodedUserInput[0] == securityQnAnsDict["securityQnAns"]:
+            print("??")
+            session['user_id'] = g.account["Id"]
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
+                val = ("0",None,None,None,encodedEmail[0])
+                cursor.execute(sql,val)
+                mysql.connection.commit()
 
+            with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+                cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
+                account = cursor.fetchone()
+                CurrentPasswordAge = account['PasswordAge']
+                todaydate = date.today()
+                delta = todaydate - CurrentPasswordAge
+                print(delta.days)
+                if int(delta.days) > 30:
+                    message = "password age is more than 30 days!"
+                else:
+                    message = 'test'
+                flash(message)
+            print("yes")
+            return redirect(url_for("home"))
+
+        else:
+            print("no")
+            error = "wrong answer"
+            flash(error)
+            return render_template("securityQns.html", form=form)
+
+    print("?????")
+    error = "wrong answer"
+    return render_template("securityQns.html", form=form, errormsg=error)
 
 @app.route('/register', methods=["GET", "POST"])
 def register():
@@ -279,7 +329,10 @@ def register():
             account = cursor.fetchone()
 
             if account:
+<<<<<<< Updated upstream
                 print("test wtf is going on")
+=======
+>>>>>>> Stashed changes
                 email_error = 'Email Has been Registered'
                 return render_template('register.html', form=form, email_error=email_error)
 
