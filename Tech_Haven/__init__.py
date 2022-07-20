@@ -12,7 +12,7 @@ import Review
 import User
 import Feedback
 import AddProduct
-from Forms import RegisterForm, ReviewForm, ForgetPasswordForm,securityQnsForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm
+from Forms import RegisterForm, ReviewForm, ForgetPasswordForm,securityQnsForm, ContactUsForm, OTPForm, OTPGform, CreateReplyForm, PasswordResetForm, LoginForm, reportForm
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -109,6 +109,10 @@ def about():
     return render_template('about.html')
 
 
+securityQn = ""
+userId = ""
+Email = ""
+
 @app.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm(request.form)
@@ -116,6 +120,7 @@ def login():
     if request.method == 'POST' and form.validate():
         session.clear()
         list = []
+        global Email
         Email = form.email.data
         list.append(Email)
         encodedEmail = encoding(list)
@@ -185,26 +190,13 @@ def login():
 
 
             if g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Verified-Customer':
-                session['user_id'] = g.account['Id']
-                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
-                    val = ("0",None,None,None,encodedEmail[0])
-                    cursor.execute(sql,val)
-                    mysql.connection.commit()
+                global securityQn
+                securityQn = g.account["securityQn"]
+                print(securityQn)
+                global userId
+                userId = str(g.account["Id"])
+                return redirect(url_for('securityQns'))
 
-                with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    cursor.execute('SELECT * FROM accounts WHERE Email = %s', (encodedEmail[0],))
-                    account = cursor.fetchone()
-                    CurrentPasswordAge = account['PasswordAge']
-                    todaydate = date.today()
-                    delta = todaydate - CurrentPasswordAge
-                    print(delta.days)
-                    if int(delta.days) > 30:
-                        message = "password age is more than 30 days!"
-                    else:
-                        message = 'test'
-                flash(message)
-                return redirect(url_for('home',message=message))
             elif g.account and bcrypt.check_password_hash(user_hashPassword,Password) and AccountStatus =='Active' and AccountType =='Non-Verified-Customer':
                 return redirect(url_for('Verify'))
 
@@ -270,14 +262,14 @@ def securityQns():
         encodedUserInput = encoding(lst)
         global userId
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            print("lol")
+
             cursor.execute('SELECT securityQnAns from accounts where Id = %s', (userId))
             mysql.connection.commit()
             securityQnAnsDict = cursor.fetchone()
-            print(securityQnAnsDict["securityQnAns"])
-            print(encodedUserInput[0])
+
+
         if encodedUserInput[0] == securityQnAnsDict["securityQnAns"]:
-            print("??")
+
             session['user_id'] = g.account["Id"]
             with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                 sql = 'UPDATE accounts SET NoOfFailedAttemps = %s, FailedLoginDate= %s, FailedLoginTime = %s , NextLoginTime= %s  WHERE Email = %s'
@@ -291,22 +283,22 @@ def securityQns():
                 CurrentPasswordAge = account['PasswordAge']
                 todaydate = date.today()
                 delta = todaydate - CurrentPasswordAge
-                print(delta.days)
+
                 if int(delta.days) > 30:
                     message = "password age is more than 30 days!"
                 else:
                     message = 'test'
                 flash(message)
-            print("yes")
+
             return redirect(url_for("home"))
 
         else:
-            print("no")
+
             error = "wrong answer"
             flash(error)
             return render_template("securityQns.html", form=form)
 
-    print("?????")
+
     error = "wrong answer"
     return render_template("securityQns.html", form=form, errormsg=error)
 
@@ -315,9 +307,9 @@ def register():
     form = RegisterForm(request.form)
     todaydate = date.today()
     current_date = todaydate.strftime("%Y-%D-%M")
-    print("test5")
+
     if request.method == 'POST' and form.validate():
-        print("test4")
+
         FirstName = form.first_name.data
         LastName = form.last_name.data
         Password = form.password.data
@@ -332,24 +324,24 @@ def register():
         list = [FirstName,LastName,Email,Street,PostalCode,UnitNumber,MobileNumber,securityQnAns]
         encoder = encoding(list)
         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-            print("test3")
+
             cursor.execute('SELECT * FROM accounts where Email = %s', (encoder[2],))
             account = cursor.fetchone()
 
             if account:
-                print("test wtf is going on")
+
                 email_error = 'Email Has been Registered'
                 return render_template('register.html', form=form, email_error=email_error)
 
             else:
-                print("test1")
+
                 currentTime = datetime.now()
                 random_str1 = random.randint(1000000,10000000)
                 random_str = str(random_str1)
                 OtpDateTime = currentTime+timedelta(minutes=30)
 
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
-                    print("test2")
+
                     cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s, %s,%s,%s,%s,%s,%s,NULL,NULL,NULL,%s,%s,%s,%s,%s,%s,%s)',
                                     (encoder[0], encoder[1], hashpassword, encoder[2], encoder[3],encoder[4],encoder[5],encoder[6],securityQn,encoder[7],current_date,"Non-Verified-Customer",0,'Active','default.jpg',random_str,OtpDateTime))
                     mysql.connection.commit()
@@ -417,7 +409,6 @@ def Verify():
             OTPAge = g.account['OTPAge']
             if inputOTP == OTP:
                 test = 'Verified-Customer'
-                print('YEs')
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     sql = 'UPDATE accounts SET AccountType= %s,  OTP= %s, OTPAge= %s  WHERE Email = %s'
                     val = (test,None,None,encodedEmail[0])
@@ -447,7 +438,7 @@ def update_profile(id):
                 with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
                     cursor.execute("select ProfilePhoto from accounts where Id = %s" % id)
                     filename = cursor.fetchone()["ProfilePhoto"]
-                    #print(filename)
+
 
             elif avatar and allowed_file(avatar.filename):
                 filename = secure_filename(avatar.filename)
@@ -1339,40 +1330,39 @@ def create_analysis2():
 
     return render_template('ReportGeneration.html',logs=records)
 
-# @app.route('/Report')
-# def create_analysis():
-#     analysis_dict = {}
-#     analysis_list = {}
+# @app.route('/ReportGeneration', methods=["GET", "POST"])
+# def report_generation():
+#     if 'user_id' in session and session['user_id'] == 1:
+#         option = ""
+#         form = reportForm(request.form)
+#         if request.method == 'POST':
+#             if form.value.data == 'Logs':
+#                 option = 'logs'
 #
+#             elif form.value.data == 'Logs By Day':
 #
-#     analysis_db = shelve.open('analysis.db', 'c')
-#     try:
-#         analysis_quantity_dict = analysis_db['Analysis_quantity']
-#     except:
-#         print('error')
+#                 option = 'Logs By Day'
 #
-#     try:
-#         analysis_revenue_dict = analysis_db['Analysis_revenue']
-#     except:
-#         print('error')
+#             elif form.value.data == 'Logs By Month':
+#                 option = 'Logs By Month'
 #
+#             elif form.value.data == 'Logs By Year':
+#                 option = 'Logs By Year '
 #
-#     analysis_quantity_dict_x = []
-#     analysis_quantity_dict_y = []
-#     for i in analysis_quantity_dict:
-#         analysis_quantity_dict_x.append(i)
-#         analysis_quantity_dict_y.append(analysis_quantity_dict[i])
+#             elif form.value.data == 'Logs':
+#                 option = 'Logs'
 #
-#     analysis_revenue_dict_x = []
-#     analysis_revenue_dict_y = []
-#     for i in analysis_revenue_dict:
-#         analysis_revenue_dict_x.append(i)
-#         analysis_revenue_dict_y.append(analysis_revenue_dict[i])
-#
-#
-#     return render_template('Report.html',
-#                            analysis_quantity_dict_x=analysis_quantity_dict_x,analysis_quantity_dict_y=analysis_quantity_dict_y,
-#                            analysis_revenue_dict_x=analysis_revenue_dict_x, analysis_revenue_dict_y=analysis_revenue_dict_y)
+#         with mysql.connection.cursor(MySQLdb.cursors.DictCursor) as cursor:
+#             cursor.execute("SELECT * FROM logs")
+#             logs = cursor.fetchall()
+#             #print("logs")
+#             #print(logs)
+#         return render_template('ReportGeneration.html', form=form, option=option,
+#                                logs=logs)
+#     else:
+#         return 'You do not have authorized access to this webpage.'
+
+
 @app.route('/viewProducts')
 def view_products_admin():
     db = shelve.open('products.db', 'c')

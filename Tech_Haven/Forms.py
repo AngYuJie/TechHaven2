@@ -72,3 +72,6 @@ class OTPGform(Form):
 class securityQnsForm(Form):
     answer = StringField('Answer', [validators.DataRequired("Please enter security question answer")])
     submit = SubmitField(label='Login')
+
+class reportForm(Form):
+    value = SelectField('', choices=[('Logs', 'Logs'),('Logs By Day','Logs By Day'),('Logs By Month', 'Logs By Month'),('Logs By Year','Logs By Year')], default='Logs', id="select")

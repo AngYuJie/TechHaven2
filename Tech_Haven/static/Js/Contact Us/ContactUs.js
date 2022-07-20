@@ -1,17 +1,40 @@
 var format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~1234567890]/
 
 
+function validateEmail(inputText)
+{
+    var mailFormat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if(inputText.value.match(mailFormat))
+        return true;
+    return false;
+}
+
+function validateName(inputText)
+{
+    var nameFormat = /^[A-Za-z ]+$/;
+    if(inputText.value.match(nameFormat))
+        return true;
+    return false;
+
+}
+
 function check(){
     // check name
     if (document.getElementById('first_name').value == ''){
         document.getElementById('FirstNameSpan').innerHTML = 'Please enter your first name'
     }
-    else{
+    else if(!validateName(document.getElementById('first_name'))) {
+        document.getElementById('FirstNameSpan').innerHTML = 'Invalid first name'
+    }
+    else {
         document.getElementById('FirstNameSpan').innerHTML = '&nbsp;'
     }
 
     if (document.getElementById('last_name').value == ''){
         document.getElementById('LastNameSpan').innerHTML = 'Please enter your last name'
+    }
+    else if(!validateName(document.getElementById('last_name'))) {
+        document.getElementById('LastNameSpan').innerHTML = 'Invalid last name'
     }
     else{
         document.getElementById('LastNameSpan').innerHTML = '&nbsp;'
@@ -23,10 +46,13 @@ function check(){
     if (document.getElementById('email').value == ''){
         document.getElementById('EmailSpan').innerHTML = 'Please enter your email'
     }
-        // check if there are '@' in email
-    else if (!document.getElementById('email').value.includes('@')){
+      else if(!validateEmail(document.getElementById('email'))) {
         document.getElementById('EmailSpan').innerHTML = 'Invalid email address'
-    }
+      }
+        // check if there are '@' in email
+//    else if (!document.getElementById('email').value.includes('@')){
+//        document.getElementById('EmailSpan').innerHTML = 'Invalid email address'
+//    }
         // check if there are 2 '@' in email
     else if (document.getElementById('email').value.indexOf('@') != document.getElementById('email').value.lastIndexOf('@')){
         document.getElementById('EmailSpan').innerHTML = 'Invalid email address'
@@ -79,4 +105,3 @@ function check(){
         document.getElementById('button').setAttribute("type", 'submit')
     }
 }
-
